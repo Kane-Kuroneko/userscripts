@@ -1,0 +1,45 @@
+# .gitignore for a TypeScript + Webpack + Node.js project
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Coverage
+coverage/
+
+# Misc
+*.log
+*.tmp
+*.swp
+
+# Ignore local environment files
+.env
+.env.*
+
+# Ignore output from scripts
+scripts/*.log
+
+# Ignore temp files
+*.bak
+*.orig
+
+# Ignore test output
+test-output/
