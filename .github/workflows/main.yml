@@ -20,7 +20,7 @@ jobs:
 
          -  name: Install dependencies
             run: npm install
-            
+
          -  name: Install sub-project dependencies
             working-directory: projects/switch520-auto-secret
             run: npm install
@@ -29,10 +29,13 @@ jobs:
             working-directory: projects/switch520-auto-secret
             run: npm run build
 
-         # 可选：读取 Release Notes（用于后续 webhook / 发布）
-         - name: Save release notes as file
-           run: |
-              echo "${{ github.event.release.body }}" > release-notes.txt
+         -  name: Save release notes as file
+            uses: actions/github-script@v7
+            with:
+            script: |
+               const fs = require('fs');
+               const body = context.payload.release.body;
+               fs.writeFileSync('release-notes.html', body);
 
          -  name: Upload build artifacts
             uses: softprops/action-gh-release@v2
