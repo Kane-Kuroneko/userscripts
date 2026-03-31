@@ -29,16 +29,17 @@ jobs:
             working-directory: projects/switch520-auto-secret
             run: npm run build
 
-         -  name: Save release notes as file
-            uses: actions/github-script@v7
-            with:
-               script: |
-                  const fs = require('fs');
-                  const body = context.payload.release.body;
-                  fs.writeFileSync('release-notes.html', body);
-
-         -  name: Upload build artifacts
-            uses: softprops/action-gh-release@v2
-            with:
-               files: |
-                  projects/switch520-auto-secret/dist/**
+         - name: Save release notes as file
+           uses: actions/github-script@v7
+           with:
+              script: |
+                 const fs = require('fs');
+                 const body = context.payload.release.body;
+                 fs.writeFileSync('release-notes.html', body);
+      
+         - name: Upload build artifacts
+           uses: softprops/action-gh-release@v2
+           with:
+              files: |
+                 projects/switch520-auto-secret/dist/**
+                 release-notes.html
