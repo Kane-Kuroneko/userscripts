@@ -1,5 +1,6 @@
 name: Build on Release
-
+permissions:
+   contents: write
 on:
    release:
       types: [ published ]
