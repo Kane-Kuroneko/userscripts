@@ -2,7 +2,6 @@ const { DefinePlugin } = webpack;
 const conf : Configuration = {
 	mode : 'production' ,
 	devtool : false ,
-	watch : true ,
 	plugins : [
 		new DefinePlugin({
 			__DEV__ : JSON.stringify(false),
