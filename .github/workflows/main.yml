@@ -37,16 +37,6 @@ jobs:
                   const body = context.payload.release.body || '';
                   core.setOutput('notes', body);
 
-         # 示例：调用 GreasyFork webhook（你已配置）
-         -  name: Notify GreasyFork
-            run: |
-               curl -X POST "${{ secrets.GREASYFORK_WEBHOOK_URL }}" \
-               -H "Content-Type: application/json" \
-               -d "$(jq -n \
-                  --arg tag "${{ github.event.release.tag_name }}" \
-                  --arg notes "${{ steps.notes.outputs.notes }}" \
-                  '{tag: $tag, notes: $notes}')"
-
          -  name: Upload build artifacts
             uses: softprops/action-gh-release@v2
             with:
