@@ -7,17 +7,16 @@ export const reaxel_OpenInModal = reaxel(() => {
 	useMatchDomain({
 		includes : [ 'gamer520' ] ,
 	} , () => {
-		if( !location.href.endsWith('.html') ) {
-			const containerEl = document.querySelector('.posts-wrapper');
-			
-			containerEl?.addEventListener('click' , async ( e ) => {
+		const mountContainerListener = async (container:HTMLElement) => {
+			const cardElements = Array.from(container.children);
+			container?.addEventListener('click' , async ( e ) => {
 				if(!await GM.getValue('options::modal-mode' , true)){
 					return;
 				}
 				e.preventDefault();
 				e.stopPropagation();
 				// console.log('bbbbbbbbbbbbb' , e.composedPath());
-				const cardEl = e.composedPath().find(( p ) => [ ...containerEl.children ].includes(p as HTMLElement)) as HTMLElement;
+				const cardEl = e.composedPath().find(( p ) => cardElements.includes(p as HTMLElement)) as HTMLElement;
 				if( cardEl ) {
 					const { href } = cardEl.querySelector('a');
 					setState({
@@ -26,6 +25,15 @@ export const reaxel_OpenInModal = reaxel(() => {
 					});
 				}
 			});
+		}
+		
+		if(location.pathname === '/'){
+			const containerEl = document.querySelector('div.row.cat-posts-wrapper') as HTMLElement;
+			mountContainerListener(containerEl);
+		}
+		if( !location.href.endsWith('.html') ) {
+			const containerEl = document.querySelector('.posts-wrapper') as HTMLElement;
+			mountContainerListener(containerEl);
 		}
 	});
 	useMatchDomain({
