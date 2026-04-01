@@ -34,7 +34,12 @@ export const SearchInSteam = reaxper( () => {
 				} , async () => {
 					const href = document.querySelectorAll('a').forEach((el) => {
 						if(el.href && el.href.startsWith('https://store.steampowered.com/app')){
-							window.open(el.href);
+							const url = new URL(el.href);
+							const queries = qs.parse(el.search);
+							if(!queries.l){
+								queries.l = 'schinese';
+							}
+							window.open(`${url.href}?${qs.stringify(queries)}`);
 						}
 					})
 				});
@@ -53,3 +58,4 @@ export const SearchInSteam = reaxper( () => {
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
 import React from 'react';
 import { reaxper } from 'reaxes-react';
+import qs from 'qs';
