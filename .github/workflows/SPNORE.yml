@@ -1,0 +1,36 @@
+name: Sync Patch Notes on Release Edit
+
+permissions:
+   contents: write
+
+on:
+   release:
+      types: [edited]
+
+jobs:
+   sync:
+      runs-on: ubuntu-latest
+
+      steps:
+         -  name: Checkout patch-notes branch
+            uses: actions/checkout@v4
+            with:
+               ref: patch-notes
+               fetch-depth: 0
+
+         -  name: Create patch-notes.html from release body
+            uses: actions/github-script@v7
+            with:
+               script: |
+                  const fs = require('fs');
+                  const body = context.payload.release.body || 'No release notes provided.';
+                  fs.writeFileSync('patch-notes.html', body, 'utf8');
+
+         -  name: Commit & push
+            uses: stefanzweifel/git-auto-commit-action@v5
+            with:
+               commit_message: |
+                  chore: sync patch-notes from release edit (${{ github.event.release.tag_name }})
+               file_pattern: patch-notes.html
+               branch: patch-notes
+               create_branch: true
