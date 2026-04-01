@@ -1,45 +1,58 @@
 name: Build on Release
 permissions:
    contents: write
+
 on:
    release:
-      types: [ published ]
+      types: [published]
 
 jobs:
    build:
       runs-on: ubuntu-latest
-
+      
       steps:
-         -  name: Checkout repository
-            uses: actions/checkout@v4
+         - name: Checkout repository
+           uses: actions/checkout@v4
+           with:
+              fetch-depth: 0   # 必须拉取完整分支历史，才能切换到 patch-notes
 
-         -  name: Setup Node.js
-            uses: actions/setup-node@v4
-            with:
-               node-version: '20'
+         - name: Setup Node.js
+           uses: actions/setup-node@v4
+           with:
+              node-version: '20'
 
-         -  name: Install dependencies
-            run: npm install
+         - name: Install dependencies
+           run: npm install
 
-         -  name: Install sub-project dependencies
-            working-directory: projects/switch520-auto-secret
-            run: npm install
+         - name: Install sub-project dependencies
+           working-directory: projects/switch520-auto-secret
+           run: npm install
 
-         -  name: Build project
-            working-directory: projects/switch520-auto-secret
-            run: npm run build
-
-         - name: Save release notes as file
+         - name: Build project
+           working-directory: projects/switch520-auto-secret
+           run: npm run build
+         
+         # ==================== 新增/修改的部分 ====================
+         - name: Create patch-notes.html from release body
            uses: actions/github-script@v7
            with:
               script: |
                  const fs = require('fs');
-                 const body = context.payload.release.body;
-                 fs.writeFileSync('release-notes.html', body);
-      
+                 const body = context.payload.release.body || 'No release notes provided.';
+                 fs.writeFileSync('patch-notes.html', body, 'utf8');
+                 console.log('✅ patch-notes.html created');
+
+         - name: Commit patch-notes.html to patch-notes branch
+           uses: stefanzweifel/git-auto-commit-action@v5
+           with:
+              branch: patch-notes
+              commit_message: 'chore: update patch-notes.html from release ${{ github.event.release.tag_name }}'
+              file_pattern: patch-notes.html
+              create_branch: true   # 分支不存在时自动创建
+         
+         # ==================== 保留原来的上传构建产物 ====================
          - name: Upload build artifacts
            uses: softprops/action-gh-release@v2
            with:
               files: |
                  projects/switch520-auto-secret/dist/**
-                 release-notes.html
