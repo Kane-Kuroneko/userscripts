@@ -4,7 +4,7 @@ permissions:
 
 on:
    release:
-      types: [created]   # 改成 created（draft 也会触发）
+      types: [published]
 
 jobs:
    build:
@@ -19,7 +19,7 @@ jobs:
          - name: Setup Node.js
            uses: actions/setup-node@v4
            with:
-              node-version: '20'
+              node-version: '22'
 
          - name: Install dependencies
            run: npm install
@@ -48,25 +48,25 @@ jobs:
               file_pattern: patch-notes.html
               create_branch: true
 
-         - name: Upload build artifacts to release
+         - name: Upload build artifacts
            uses: softprops/action-gh-release@v2
            with:
               files: |
                  projects/switch520-auto-secret/dist/**
-              # 注意：不需要再加 release-notes.html，因为它已提交到 patch-notes 分支
          
-         # ==================== 新增：上传完毕后自动发布 Release ====================
-         - name: Publish release (触发 GreasyFork webhook)
-           uses: actions/github-script@v7
-           with:
-              script: |
-                 const { owner, repo } = context.repo;
-                 const releaseId = context.payload.release.id;
-                 await github.rest.repos.updateRelease({
-                   owner,
-                   repo,
-                   release_id: releaseId,
-                   draft: false,        # 关键：从 draft 改为 published
-                   prerelease: context.payload.release.prerelease
-                 });
-                 console.log('✅ Release published! GreasyFork webhook will be triggered now.');
+         # ==================== 关键：构建+上传全部完成后才触发 GreasyFork ====================
+         - name: Trigger GreasyFork Webhook
+           if: success()
+           run: |
+              echo "🚀 Triggering GreasyFork sync after all assets uploaded..."
+              curl -f -X POST \
+                -H "Content-Type: application/json" \
+                --data '{
+                  "action": "published",
+                  "release": {
+                    "tag_name": "${{ github.event.release.tag_name }}",
+                    "html_url": "${{ github.event.release.html_url }}"
+                  }
+                }' \
+                "${{ secrets.GREASYFORK_WEBHOOK_URL }}"
+              echo "✅ GreasyFork webhook triggered successfully"
