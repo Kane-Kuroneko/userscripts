@@ -4,7 +4,7 @@ permissions:
 
 on:
    release:
-      types: [published]
+      types: [created]   # 改成 created（draft 也会触发）
 
 jobs:
    build:
@@ -13,11 +13,13 @@ jobs:
       steps:
          - name: Checkout repository
            uses: actions/checkout@v4
+           with:
+              fetch-depth: 0
 
          - name: Setup Node.js
            uses: actions/setup-node@v4
            with:
-              node-version: '22'
+              node-version: '20'
 
          - name: Install dependencies
            run: npm install
@@ -30,39 +32,41 @@ jobs:
            working-directory: projects/switch520-auto-secret
            run: npm run build
 
-         - name: Generate patch-notes.html from release body
+         - name: Create patch-notes.html from release body
            uses: actions/github-script@v7
            with:
               script: |
                  const fs = require('fs');
                  const body = context.payload.release.body || 'No release notes provided.';
                  fs.writeFileSync('patch-notes.html', body, 'utf8');
-                 console.log('✅ patch-notes.html generated');
-         
-         # ==================== 先上传构建产物（重要！放在 orphan 之前） ====================
-         - name: Upload build artifacts
+
+         - name: Commit patch-notes.html to patch-notes branch
+           uses: stefanzweifel/git-auto-commit-action@v5
+           with:
+              branch: patch-notes
+              commit_message: 'chore: update patch-notes.html from release ${{ github.event.release.tag_name }}'
+              file_pattern: patch-notes.html
+              create_branch: true
+
+         - name: Upload build artifacts to release
            uses: softprops/action-gh-release@v2
            with:
               files: |
                  projects/switch520-auto-secret/dist/**
+              # 注意：不需要再加 release-notes.html，因为它已提交到 patch-notes 分支
          
-         # ==================== 关键修正：创建独立的 orphan branch ====================
-         - name: Push patch-notes.html to independent patch-notes branch (orphan)
-           run: |
-              git config --local user.name "github-actions[bot]"
-              git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-              
-              # 切换到完全独立的 orphan branch（无历史）
-              git checkout --orphan patch-notes
-              
-              # 清空 index 和工作目录，只保留 patch-notes.html
-              git rm -rf --cached . >/dev/null 2>&1 || true
-              find . -maxdepth 1 ! -name '.git' ! -name 'patch-notes.html' -exec rm -rf {} + || true
-              
-              # 添加并提交
-              git add patch-notes.html
-              git commit -m "chore: update patch-notes.html from release ${{ github.event.release.tag_name }}" || echo "No changes"
-              
-              # 强制推送（保持分支干净独立）
-              git push origin patch-notes --force
-              echo "✅ Successfully pushed to independent patch-notes branch"
+         # ==================== 新增：上传完毕后自动发布 Release ====================
+         - name: Publish release (触发 GreasyFork webhook)
+           uses: actions/github-script@v7
+           with:
+              script: |
+                 const { owner, repo } = context.repo;
+                 const releaseId = context.payload.release.id;
+                 await github.rest.repos.updateRelease({
+                   owner,
+                   repo,
+                   release_id: releaseId,
+                   draft: false,        # 关键：从 draft 改为 published
+                   prerelease: context.payload.release.prerelease
+                 });
+                 console.log('✅ Release published! GreasyFork webhook will be triggered now.');
