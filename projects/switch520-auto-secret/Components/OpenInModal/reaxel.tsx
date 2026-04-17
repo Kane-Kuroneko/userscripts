@@ -136,7 +136,7 @@ export const reaxel_OpenInModal = reaxel(() => {
 					e.stopPropagation();
 					
 					// 获取卡片中的链接（优先使用 item-thumbnail 中的链接）
-					const linkEl = cardEl.querySelector('.item-thumbnail a, .item-heading a, a') as HTMLLinkElement;
+					const linkEl = cardEl.querySelector('.item-thumbnail a, .item-heading a, a') as HTMLAnchorElement;
 					console.log('[fzgamer modal] Link element found:', linkEl, 'href:', linkEl?.href);
 					
 					if(linkEl && linkEl.href){
@@ -150,6 +150,63 @@ export const reaxel_OpenInModal = reaxel(() => {
 					}
 				} else {
 					console.log('[fzgamer modal] No card element found in click path');
+				}
+			});
+		});
+		
+		// 获取所有热门帖子容器（zib-widget hot-posts）
+		const hotPostsContainers = document.querySelectorAll('.zib-widget.hot-posts');
+		console.log('[fzgamer modal] Hot posts containers found:', hotPostsContainers.length);
+		
+		// 为每个热门帖子容器绑定点击事件监听器
+		hotPostsContainers.forEach((containerEl) => {
+			console.log('[fzgamer modal] Binding listener to hot posts container:', containerEl);
+			
+			containerEl.addEventListener('click' , async ( e ) => {
+				console.log('[fzgamer modal] Hot posts click event triggered');
+				
+				const modalModeEnabled = await GM.getValue('options::modal-mode' , true);
+				console.log('[fzgamer modal] Modal mode enabled:', modalModeEnabled);
+				
+				if(!modalModeEnabled){
+					console.log('[fzgamer modal] Modal mode is disabled, skipping');
+					return;
+				}
+				
+				// 查找点击路径中的卡片元素（容器下的第一层子元素）
+				const path = e.composedPath();
+				console.log('[fzgamer modal] Hot posts click path:', path);
+				
+				const cardEl = path.find((p: HTMLElement) => {
+					// 检查是否是容器的直接子元素（第一层）
+					const isDirectChild = p.parentElement === containerEl;
+					// 排除 relative 容器本身，匹配内部的 flex 或 relative 卡片
+					const isHotPostCard = p.classList?.contains('flex') || (p.classList?.contains('relative') && isDirectChild);
+					console.log('[fzgamer modal] Checking hot post element:', p.tagName, 'class:', p.className, 'isDirectChild:', isDirectChild, 'isHotPostCard:', isHotPostCard);
+					return isHotPostCard;
+				}) as HTMLElement;
+				
+				console.log('[fzgamer modal] Hot post card element found:', cardEl);
+				
+				if(cardEl){
+					e.preventDefault();
+					e.stopPropagation();
+					
+					// 获取卡片中的链接
+					const linkEl = cardEl.querySelector('a') as HTMLAnchorElement;
+					console.log('[fzgamer modal] Hot post link element found:', linkEl, 'href:', linkEl?.href);
+					
+					if(linkEl && linkEl.href){
+						console.log('[fzgamer modal] Opening modal with URL:', linkEl.href);
+						setState({
+							iframeURL : linkEl.href ,
+							modalOpened : true ,
+						});
+					} else {
+						console.log('[fzgamer modal] No link element found in hot post card');
+					}
+				} else {
+					console.log('[fzgamer modal] No hot post card element found in click path');
 				}
 			});
 		});
