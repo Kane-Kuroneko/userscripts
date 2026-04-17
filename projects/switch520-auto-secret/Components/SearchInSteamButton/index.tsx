@@ -43,6 +43,16 @@ export const SearchInSteam = reaxper( () => {
 						}
 					})
 				});
+				await useMatchDomain({
+					includes : [ 'fzgamer' ] ,
+				} , async () => {
+					// 查找包含 steam-square 图标的链接按钮
+					const steamButton = document.querySelector('a.but.b-theme.b-black i.fa-steam-square')?.parentElement as HTMLLinkElement;
+					
+					if(steamButton && steamButton.href){
+						window.open(steamButton.href);
+					}
+				});
 				
 				if(!searchResult){
 					return;

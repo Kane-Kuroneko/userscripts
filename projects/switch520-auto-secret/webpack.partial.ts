@@ -44,6 +44,8 @@ const conf: Configuration = {
 					"*://www.piclabo.xyz/*" ,
 					"*://like.gamer520.com/*" ,
 					"*://pan.baidu.com/*" ,
+					"*://www.fzgamer.com/*" ,
+					"*://fzgamer.com/*" ,
 				] ,
 				require : [
 					'https://unpkg.com/react@18.2.0/umd/react.production.min.js' ,

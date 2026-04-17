@@ -23,6 +23,7 @@ export function initSearchInSteam(): void {
 	initGamer520SearchButton();
 	initSwitch618SearchButton();
 	initSteamzgSearchButton();
+	initFzgamerSearchButton();
 
 	/**
 	 * gamer520.com 站点插入搜索按钮
@@ -73,6 +74,26 @@ export function initSearchInSteam(): void {
 			const parent = siblingEl.parentElement;
 			parent?.insertBefore(div, siblingEl);
 			reactRoot.render(<SearchInSteam />);
+		});
+	}
+
+	/**
+	 * fzgamer.com 站点插入搜索按钮
+	 * 在 .widget-ajaxpager 元素后面插入按钮
+	 */
+	function initFzgamerSearchButton(): void {
+		useMatchDomain({
+			includes: ['fzgamer.com']
+		}, () => {
+			// 在文章页面中，找到 .widget-ajaxpager 容器
+			const ajaxPagerEl = document.querySelector('.widget-ajaxpager');
+			
+			if (ajaxPagerEl && location.pathname !== '/') {
+				// 在 .widget-ajaxpager 后面插入按钮
+				ajaxPagerEl.insertAdjacentElement('afterend', div);
+				reactRoot.render(<SearchInSteam />);
+				console.log('[fzgamer] SearchInSteam button inserted');
+			}
 		});
 	}
 }

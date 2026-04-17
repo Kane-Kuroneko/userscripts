@@ -96,6 +96,65 @@ export const reaxel_OpenInModal = reaxel(() => {
 		}
 	});
 	useMatchDomain({
+		includes : [ 'fzgamer' ] ,
+	} , () => {
+		// 获取所有 .widget-ajaxpager 容器元素
+		const containerEls = document.querySelectorAll('.widget-ajaxpager');
+		console.log('[fzgamer modal] Containers found:', containerEls.length);
+		
+		// 为每个容器绑定点击事件监听器
+		containerEls.forEach((containerEl) => {
+			console.log('[fzgamer modal] Binding listener to container:', containerEl);
+			
+			containerEl.addEventListener('click' , async ( e ) => {
+				console.log('[fzgamer modal] Click event triggered');
+				
+				const modalModeEnabled = await GM.getValue('options::modal-mode' , true);
+				console.log('[fzgamer modal] Modal mode enabled:', modalModeEnabled);
+				
+				if(!modalModeEnabled){
+					console.log('[fzgamer modal] Modal mode is disabled, skipping');
+					return;
+				}
+				
+				// 查找点击路径中的卡片元素（支持 posts-item 和 posts-mini ajax-item 两种类型）
+				const path = e.composedPath();
+				console.log('[fzgamer modal] Click path:', path);
+				
+				const cardEl = path.find((p: HTMLElement) => {
+					// 匹配 <POSTS class="posts-item"> 或 <div class="posts-mini ajax-item">
+					const isPostsItem = p.tagName === 'POSTS' && p.classList?.contains('posts-item');
+					const isPostsMini = p.classList?.contains('posts-mini') && p.classList?.contains('ajax-item');
+					console.log('[fzgamer modal] Checking element:', p.tagName, 'class:', p.className, 'isPostsItem:', isPostsItem, 'isPostsMini:', isPostsMini);
+					return isPostsItem || isPostsMini;
+				}) as HTMLElement;
+				
+				console.log('[fzgamer modal] Card element found:', cardEl);
+				
+				if(cardEl){
+					e.preventDefault();
+					e.stopPropagation();
+					
+					// 获取卡片中的链接（优先使用 item-thumbnail 中的链接）
+					const linkEl = cardEl.querySelector('.item-thumbnail a, .item-heading a, a') as HTMLLinkElement;
+					console.log('[fzgamer modal] Link element found:', linkEl, 'href:', linkEl?.href);
+					
+					if(linkEl && linkEl.href){
+						console.log('[fzgamer modal] Opening modal with URL:', linkEl.href);
+						setState({
+							iframeURL : linkEl.href ,
+							modalOpened : true ,
+						});
+					} else {
+						console.log('[fzgamer modal] No link element found in card');
+					}
+				} else {
+					console.log('[fzgamer modal] No card element found in click path');
+				}
+			});
+		});
+	});
+	useMatchDomain({
 		includes : [ 'steamzg' ] ,
 	} , () => {
 		

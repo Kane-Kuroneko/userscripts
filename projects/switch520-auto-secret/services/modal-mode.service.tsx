@@ -44,6 +44,8 @@ async function initModalMode(): Promise<void> {
 	if (!isEnabled) return;
 
 	const div = document.createElement('div');
+	document.body.appendChild(div);
 	const reactRoot = createRoot(div);
 	reactRoot.render(<OpenInModal />);
+	console.log('[modal-mode] OpenInModal component mounted');
 }
