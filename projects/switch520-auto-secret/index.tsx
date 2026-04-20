@@ -28,6 +28,7 @@ import { initContextMenuService } from './services/context-menu.service';
 import { initQrcodeConverterService } from './services/qrcode-converter.service';
 import { initSearchOnSelect } from './features/search-on-select';
 import { initSearchInSteam } from './features/search-in-steam';
+import { moveElementsToVersionIntro } from './DOM-finder/fzgamer.com';
 import "./style.less";
 
 // 开发环境：条件加载代理检测器
@@ -55,4 +56,5 @@ if (!document.body) {
 	initQrcodeConverterService();
 	initSearchOnSelect();
 	initSearchInSteam();
+	moveElementsToVersionIntro();
 }
