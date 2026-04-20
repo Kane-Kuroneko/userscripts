@@ -57,6 +57,8 @@ jobs:
 
          - name: Build project
            run: npm run build:${{ steps.parse-tag.outputs.PROJECT_NAME }}
+           env:
+              SCRIPT_VERSION: ${{ steps.parse-tag.outputs.VERSION }}
 
          - name: Verify build output
            run: |

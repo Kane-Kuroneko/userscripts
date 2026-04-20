@@ -19,7 +19,9 @@ const conf: Configuration = {
 		new UserscriptPlugin({
 			headers : {
 				name : 'switch520-auto-secret' ,
-				version : '7.0.0' ,
+				// 优先使用环境变量 SCRIPT_VERSION（CI/CD 或 release.sh 传入）
+				// 否则使用默认版本号（本地开发时可用）
+				version : process.env.SCRIPT_VERSION || '7.0.5' ,
 				author : 'Kane' ,
 				description : '优化多个游戏下载站,包括switch520、switch618、acgxj,steamzg等:二维码转链接|无跳转弹窗浏览|自动填写密码|下载按钮直达下载地址页|去Steam查看游戏' ,
 				namespace : 'http://tampermonkey.net/' ,

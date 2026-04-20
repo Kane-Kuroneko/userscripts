@@ -103,6 +103,11 @@ fi
 
 # 构建项目
 print_info "构建项目 ${PROJECT_NAME}..."
+print_info "使用版本号: v${VERSION}"
+
+# 设置环境变量，让构建使用指定版本号
+export SCRIPT_VERSION="${VERSION}"
+
 if npm run build:${PROJECT_NAME}; then
     print_success "构建成功"
 else
