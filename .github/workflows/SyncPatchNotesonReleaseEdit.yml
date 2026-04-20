@@ -17,6 +17,7 @@ jobs:
             with:
                ref: patch-notes
                fetch-depth: 0
+               token: ${{ secrets.GITHUB_TOKEN }}
 
          -  name: Create patch-notes.html from release body
             uses: actions/github-script@v7
@@ -34,3 +35,7 @@ jobs:
                file_pattern: patch-notes.html
                branch: patch-notes
                create_branch: true
+               commit_user_name: github-actions[bot]
+               commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+               commit_author: Kane-Kuroneko <40685018+Kane-Kuroneko@users.noreply.github.com>
+               push_options: '--force-with-lease'
