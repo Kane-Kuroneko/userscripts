@@ -101,7 +101,9 @@ jobs:
               prerelease: false
 
          - name: Trigger GreasyFork Webhook
-           if: success()
+           if: success() && env.GREASYFORK_WEBHOOK_URL != ''
+           env:
+              GREASYFORK_WEBHOOK_URL: ${{ secrets.GREASYFORK_WEBHOOK_URL }}
            run: |
               echo "🚀 Triggering GreasyFork sync for ${{ steps.parse-tag.outputs.PROJECT_NAME }}..."
               curl -f -X POST \
@@ -113,5 +115,5 @@ jobs:
                   "tag": "${{ steps.parse-tag.outputs.TAG_NAME }}",
                   "release_url": "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.parse-tag.outputs.TAG_NAME }}"
                 }' \
-                "${{ secrets.GREASYFORK_WEBHOOK_URL }}"
+                "$GREASYFORK_WEBHOOK_URL"
               echo "✅ GreasyFork webhook triggered successfully"
