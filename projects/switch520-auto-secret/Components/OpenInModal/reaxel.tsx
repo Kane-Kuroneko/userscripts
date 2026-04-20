@@ -71,12 +71,7 @@ export const reaxel_OpenInModal = reaxel(() => {
 					return;
 				}
 				const cardEl = e.composedPath().find(( p: HTMLElement ) => !!( p ).dataset?.id && p.className === 'post grid') as HTMLElement;
-				if(cardEl){
-					e.preventDefault();
-					e.stopPropagation();
-				}
 				if( cardEl ) {
-					console.log(cardEl , '0000000000');
 					const id = cardEl.dataset.id;
 					setState({
 						iframeURL : `https://www.switch618.com/${ id }.html` ,
@@ -98,115 +93,70 @@ export const reaxel_OpenInModal = reaxel(() => {
 	useMatchDomain({
 		includes : [ 'fzgamer' ] ,
 	} , () => {
-		// 获取所有 .widget-ajaxpager 容器元素
 		const containerEls = document.querySelectorAll('.widget-ajaxpager');
-		console.log('[fzgamer modal] Containers found:', containerEls.length);
 		
-		// 为每个容器绑定点击事件监听器
 		containerEls.forEach((containerEl) => {
-			console.log('[fzgamer modal] Binding listener to container:', containerEl);
-			
 			containerEl.addEventListener('click' , async ( e ) => {
-				console.log('[fzgamer modal] Click event triggered');
-				
 				const modalModeEnabled = await GM.getValue('options::modal-mode' , true);
-				console.log('[fzgamer modal] Modal mode enabled:', modalModeEnabled);
 				
 				if(!modalModeEnabled){
-					console.log('[fzgamer modal] Modal mode is disabled, skipping');
 					return;
 				}
 				
-				// 查找点击路径中的卡片元素（支持 posts-item 和 posts-mini ajax-item 两种类型）
 				const path = e.composedPath();
-				console.log('[fzgamer modal] Click path:', path);
 				
 				const cardEl = path.find((p: HTMLElement) => {
-					// 匹配 <POSTS class="posts-item"> 或 <div class="posts-mini ajax-item">
 					const isPostsItem = p.tagName === 'POSTS' && p.classList?.contains('posts-item');
 					const isPostsMini = p.classList?.contains('posts-mini') && p.classList?.contains('ajax-item');
-					console.log('[fzgamer modal] Checking element:', p.tagName, 'class:', p.className, 'isPostsItem:', isPostsItem, 'isPostsMini:', isPostsMini);
 					return isPostsItem || isPostsMini;
 				}) as HTMLElement;
-				
-				console.log('[fzgamer modal] Card element found:', cardEl);
 				
 				if(cardEl){
 					e.preventDefault();
 					e.stopPropagation();
 					
-					// 获取卡片中的链接（优先使用 item-thumbnail 中的链接）
 					const linkEl = cardEl.querySelector('.item-thumbnail a, .item-heading a, a') as HTMLAnchorElement;
-					console.log('[fzgamer modal] Link element found:', linkEl, 'href:', linkEl?.href);
 					
 					if(linkEl && linkEl.href){
-						console.log('[fzgamer modal] Opening modal with URL:', linkEl.href);
 						setState({
 							iframeURL : linkEl.href ,
 							modalOpened : true ,
 						});
-					} else {
-						console.log('[fzgamer modal] No link element found in card');
 					}
-				} else {
-					console.log('[fzgamer modal] No card element found in click path');
 				}
 			});
 		});
 		
-		// 获取所有热门帖子容器（zib-widget hot-posts）
 		const hotPostsContainers = document.querySelectorAll('.zib-widget.hot-posts');
-		console.log('[fzgamer modal] Hot posts containers found:', hotPostsContainers.length);
 		
-		// 为每个热门帖子容器绑定点击事件监听器
 		hotPostsContainers.forEach((containerEl) => {
-			console.log('[fzgamer modal] Binding listener to hot posts container:', containerEl);
-			
 			containerEl.addEventListener('click' , async ( e ) => {
-				console.log('[fzgamer modal] Hot posts click event triggered');
-				
 				const modalModeEnabled = await GM.getValue('options::modal-mode' , true);
-				console.log('[fzgamer modal] Modal mode enabled:', modalModeEnabled);
 				
 				if(!modalModeEnabled){
-					console.log('[fzgamer modal] Modal mode is disabled, skipping');
 					return;
 				}
 				
-				// 查找点击路径中的卡片元素（容器下的第一层子元素）
 				const path = e.composedPath();
-				console.log('[fzgamer modal] Hot posts click path:', path);
 				
 				const cardEl = path.find((p: HTMLElement) => {
-					// 检查是否是容器的直接子元素（第一层）
 					const isDirectChild = p.parentElement === containerEl;
-					// 排除 relative 容器本身，匹配内部的 flex 或 relative 卡片
 					const isHotPostCard = p.classList?.contains('flex') || (p.classList?.contains('relative') && isDirectChild);
-					console.log('[fzgamer modal] Checking hot post element:', p.tagName, 'class:', p.className, 'isDirectChild:', isDirectChild, 'isHotPostCard:', isHotPostCard);
 					return isHotPostCard;
 				}) as HTMLElement;
-				
-				console.log('[fzgamer modal] Hot post card element found:', cardEl);
 				
 				if(cardEl){
 					e.preventDefault();
 					e.stopPropagation();
 					
-					// 获取卡片中的链接
 					const linkEl = cardEl.querySelector('a') as HTMLAnchorElement;
-					console.log('[fzgamer modal] Hot post link element found:', linkEl, 'href:', linkEl?.href);
 					
 					if(linkEl && linkEl.href){
-						console.log('[fzgamer modal] Opening modal with URL:', linkEl.href);
 						setState({
 							iframeURL : linkEl.href ,
 							modalOpened : true ,
 						});
-					} else {
-						console.log('[fzgamer modal] No link element found in hot post card');
 					}
-				} else {
-					console.log('[fzgamer modal] No hot post card element found in click path');
 				}
 			});
 		});
@@ -252,28 +202,28 @@ export const reaxel_OpenInModal = reaxel(() => {
 		
 		const mainEl = document.querySelector('.poi-row.inn-archive__container');
 		
-		mainEl?.addEventListener('click' , async ( e ) => {
-			if(!await GM.getValue('options::modal-mode' , true)){
-				return;
-			}
-						
-			const cardEl = e.composedPath().find(( el: HTMLElement ) => el.tagName ==='ARTICLE') as HTMLElement;
-			if(cardEl){
-				e.preventDefault();
-				e.stopPropagation();
+			mainEl?.addEventListener('click' , async ( e ) => {
+				if(!await GM.getValue('options::modal-mode' , true)){
+					return;
+				}
 				
-				const href = (cardEl.querySelector(`a[href^='https://steamzg.com/']`) as HTMLLinkElement).href;
-				
-				//临时代码,当站长修复X-Frame-Options之前
-				notice(href);
-				return;
-				////////////////////////////
-				setState({
-					iframeURL : href ,
-					modalOpened : true ,
-				});
-			}
-		});
+				const cardEl = e.composedPath().find(( el: HTMLElement ) => el.tagName ==='ARTICLE') as HTMLElement;
+				if(cardEl){
+					e.preventDefault();
+					e.stopPropagation();
+					
+					const href = (cardEl.querySelector(`a[href^='https://steamzg.com/']`) as HTMLLinkElement).href;
+					
+					//临时代码,当站长修复X-Frame-Options之前
+					notice(href);
+					return;
+					////////////////////////////
+					setState({
+						iframeURL : href ,
+						modalOpened : true ,
+					});
+				}
+			});
 	});
 	
 	if(!document.body){

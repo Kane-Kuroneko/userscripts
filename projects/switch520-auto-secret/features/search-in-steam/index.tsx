@@ -79,20 +79,19 @@ export function initSearchInSteam(): void {
 
 	/**
 	 * fzgamer.com 站点插入搜索按钮
-	 * 在 .widget-ajaxpager 元素后面插入按钮
+	 * 在 .article-header 元素后面插入按钮
 	 */
 	function initFzgamerSearchButton(): void {
 		useMatchDomain({
 			includes: ['fzgamer.com']
 		}, () => {
-			// 在文章页面中，找到 .widget-ajaxpager 容器
-			const ajaxPagerEl = document.querySelector('.widget-ajaxpager');
+			// 在文章页面中,找到 article-header 元素
+			const targetEl = document.querySelector('body > main > div.content-wrap > div > article > div.article-header.theme-box.clearfix.relative');
 			
-			if (ajaxPagerEl && location.pathname !== '/') {
-				// 在 .widget-ajaxpager 后面插入按钮
-				ajaxPagerEl.insertAdjacentElement('afterend', div);
+			if (targetEl && location.pathname !== '/') {
+				// 在目标元素后面插入按钮
+				targetEl.insertAdjacentElement('afterend', div);
 				reactRoot.render(<SearchInSteam />);
-				console.log('[fzgamer] SearchInSteam button inserted');
 			}
 		});
 	}
