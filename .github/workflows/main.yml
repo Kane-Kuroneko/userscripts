@@ -1,4 +1,9 @@
-name: Build on Release
+# ⚠️ DEPRECATED: 此文件已被 release.yml 替代
+# 保留仅供参考，将在未来删除
+# 请使用新的 tag 格式: project-name/v1.2.3
+# 参见: docs/CI-CD-GUIDE.md
+
+name: Build on Release (DEPRECATED)
 permissions:
    contents: write
 

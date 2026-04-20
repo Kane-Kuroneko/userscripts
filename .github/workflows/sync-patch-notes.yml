@@ -1,0 +1,68 @@
+name: Sync Patch Notes on Release Edit
+
+permissions:
+   contents: write
+
+on:
+   release:
+      types: [edited]
+
+jobs:
+   sync-patch-notes:
+      runs-on: ubuntu-latest
+
+      steps:
+         - name: Checkout default branch
+           uses: actions/checkout@v4
+           with:
+              fetch-depth: 1
+
+         - name: Parse project name from tag
+           id: parse-tag
+           run: |
+              TAG_NAME="${{ github.event.release.tag_name }}"
+              PROJECT_NAME=$(echo "$TAG_NAME" | cut -d'/' -f1)
+              echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_OUTPUT
+              echo "Parsed project name: $PROJECT_NAME from tag: $TAG_NAME"
+
+         - name: Checkout patch-notes branch
+           uses: actions/checkout@v4
+           with:
+              ref: patch-notes
+              fetch-depth: 0
+              token: ${{ secrets.GITHUB_TOKEN }}
+              path: patch-notes-workdir
+
+         - name: Create project-specific patch notes
+           run: |
+              PROJECT_NAME="${{ steps.parse-tag.outputs.PROJECT_NAME }}"
+              TAG_NAME="${{ github.event.release.tag_name }}"
+              RELEASE_BODY='${{ github.event.release.body }}'
+              
+              # 如果 body 为空，使用默认值
+              if [ -z "$RELEASE_BODY" ]; then
+                 RELEASE_BODY="No release notes provided."
+              fi
+              
+              # 创建项目特定的 patch notes 文件
+              printf '%s\n' "## ${PROJECT_NAME} - ${TAG_NAME}" > "patch-notes-workdir/patch-notes-${PROJECT_NAME}.html"
+              printf '%s\n' "" >> "patch-notes-workdir/patch-notes-${PROJECT_NAME}.html"
+              printf '%s\n' "${RELEASE_BODY}" >> "patch-notes-workdir/patch-notes-${PROJECT_NAME}.html"
+              printf '%s\n' "" >> "patch-notes-workdir/patch-notes-${PROJECT_NAME}.html"
+              printf '%s\n' "---" >> "patch-notes-workdir/patch-notes-${PROJECT_NAME}.html"
+              printf '%s\n' "*Updated at: $(date -u +"%Y-%m-%dT%H:%M:%SZ")*" >> "patch-notes-workdir/patch-notes-${PROJECT_NAME}.html"
+              
+              echo "✅ Created patch-notes-${PROJECT_NAME}.html"
+
+         - name: Commit & push
+           uses: stefanzweifel/git-auto-commit-action@v5
+           with:
+              repository: patch-notes-workdir
+              commit_message: "chore: sync patch-notes for ${{ steps.parse-tag.outputs.PROJECT_NAME }} (${{ github.event.release.tag_name }})"
+              file_pattern: patch-notes-*.html
+              branch: patch-notes
+              create_branch: true
+              commit_user_name: github-actions[bot]
+              commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+              commit_author: Kane-Kuroneko <40685018+Kane-Kuroneko@users.noreply.github.com>
+              push_options: '--force-with-lease'

@@ -1,4 +1,7 @@
-name: Sync Patch Notes on Release Edit
+# ⚠️ DEPRECATED: 此文件已被 sync-patch-notes.yml 替代
+# 保留仅供参考，将在未来删除
+
+name: Sync Patch Notes on Release Edit (DEPRECATED)
 
 permissions:
    contents: write

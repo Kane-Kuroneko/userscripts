@@ -1,0 +1,117 @@
+name: Build & Release on Tag
+permissions:
+   contents: write
+
+on:
+   push:
+      tags:
+         - '**/v*'  # 匹配格式: project-name/v1.2.3
+
+jobs:
+   parse-and-build:
+      runs-on: ubuntu-latest
+      
+      steps:
+         - name: Checkout repository
+           uses: actions/checkout@v4
+           with:
+              fetch-depth: 0
+
+         - name: Parse project name and version from tag
+           id: parse-tag
+           run: |
+              TAG_NAME=${GITHUB_REF#refs/tags/}
+              PROJECT_NAME=$(echo $TAG_NAME | cut -d'/' -f1)
+              VERSION=$(echo $TAG_NAME | cut -d'/' -f2)
+              
+              echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_OUTPUT
+              echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+              echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+              
+              echo "📦 解析结果:"
+              echo "  项目名称: $PROJECT_NAME"
+              echo "  版本号: $VERSION"
+              echo "  完整Tag: $TAG_NAME"
+
+         - name: Validate project exists
+           run: |
+              if [ ! -d "projects/${{ steps.parse-tag.outputs.PROJECT_NAME }}" ]; then
+                 echo "❌ 错误: 项目 ${{ steps.parse-tag.outputs.PROJECT_NAME }} 不存在"
+                 echo "💡 可用项目列表:"
+                 ls -1 projects/
+                 exit 1
+              fi
+              echo "✅ 项目 ${{ steps.parse-tag.outputs.PROJECT_NAME }} 存在"
+
+         - name: Setup Node.js
+           uses: actions/setup-node@v4
+           with:
+              node-version: '22'
+
+         - name: Install root dependencies
+           run: npm install
+
+         - name: Install project dependencies
+           working-directory: projects/${{ steps.parse-tag.outputs.PROJECT_NAME }}
+           run: npm install
+
+         - name: Build project
+           run: npm run build:${{ steps.parse-tag.outputs.PROJECT_NAME }}
+
+         - name: Verify build output
+           run: |
+              if [ ! -d "projects/${{ steps.parse-tag.outputs.PROJECT_NAME }}/dist" ]; then
+                 echo "❌ 构建产物不存在"
+                 exit 1
+              fi
+              echo "✅ 构建产物已生成:"
+              ls -lh projects/${{ steps.parse-tag.outputs.PROJECT_NAME }}/dist/
+
+         - name: Get release info
+           id: release-info
+           uses: actions/github-script@v7
+           with:
+              script: |
+                 const tagName = '${{ steps.parse-tag.outputs.TAG_NAME }}';
+                 const version = '${{ steps.parse-tag.outputs.VERSION }}';
+                 
+                 // 尝试获取 release 信息
+                 try {
+                    const { data: release } = await github.rest.repos.getReleaseByTag({
+                       owner: context.repo.owner,
+                       repo: context.repo.repo,
+                       tag: tagName
+                    });
+                    
+                    core.setOutput('release_body', release.body || '');
+                    core.setOutput('release_name', release.name || version);
+                 } catch (e) {
+                    core.setOutput('release_body', '');
+                    core.setOutput('release_name', version);
+                 }
+
+         - name: Create GitHub Release
+           uses: softprops/action-gh-release@v2
+           with:
+              tag_name: ${{ steps.parse-tag.outputs.TAG_NAME }}
+              name: ${{ steps.parse-tag.outputs.PROJECT_NAME }} ${{ steps.parse-tag.outputs.VERSION }}
+              body: ${{ steps.release-info.outputs.release_body }}
+              files: projects/${{ steps.parse-tag.outputs.PROJECT_NAME }}/dist/**
+              draft: false
+              prerelease: false
+
+         - name: Trigger GreasyFork Webhook
+           if: success()
+           run: |
+              echo "🚀 Triggering GreasyFork sync for ${{ steps.parse-tag.outputs.PROJECT_NAME }}..."
+              curl -f -X POST \
+                -H "Content-Type: application/json" \
+                --data '{
+                  "action": "published",
+                  "project": "${{ steps.parse-tag.outputs.PROJECT_NAME }}",
+                  "version": "${{ steps.parse-tag.outputs.VERSION }}",
+                  "tag": "${{ steps.parse-tag.outputs.TAG_NAME }}",
+                  "release_url": "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.parse-tag.outputs.TAG_NAME }}"
+                }' \
+                "${{ secrets.GREASYFORK_WEBHOOK_URL }}"
+              echo "✅ GreasyFork webhook triggered successfully"
