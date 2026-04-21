@@ -22,7 +22,8 @@ jobs:
            run: |
               TAG_NAME=${GITHUB_REF#refs/tags/}
               PROJECT_NAME=$(echo $TAG_NAME | cut -d'/' -f1)
-              VERSION=$(echo $TAG_NAME | cut -d'/' -f2)
+              VERSION_WITH_V=$(echo $TAG_NAME | cut -d'/' -f2)
+              VERSION=${VERSION_WITH_V#v}
               
               echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_OUTPUT
               echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
