@@ -70,6 +70,8 @@ export const reaxel_OpenInModal = reaxel(() => {
 				if(!await GM.getValue('options::modal-mode' , true)){
 					return;
 				}
+				e.preventDefault();
+				e.stopPropagation();
 				const cardEl = e.composedPath().find(( p: HTMLElement ) => !!( p ).dataset?.id && p.className === 'post grid') as HTMLElement;
 				if( cardEl ) {
 					const id = cardEl.dataset.id;
