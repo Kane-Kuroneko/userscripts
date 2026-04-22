@@ -70,10 +70,10 @@ export const reaxel_OpenInModal = reaxel(() => {
 				if(!await GM.getValue('options::modal-mode' , true)){
 					return;
 				}
-				e.preventDefault();
-				e.stopPropagation();
 				const cardEl = e.composedPath().find(( p: HTMLElement ) => !!( p ).dataset?.id && p.className === 'post grid') as HTMLElement;
 				if( cardEl ) {
+					e.preventDefault();
+					e.stopPropagation();
 					const id = cardEl.dataset.id;
 					setState({
 						iframeURL : `https://www.switch618.com/${ id }.html` ,
