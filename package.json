@@ -6,7 +6,8 @@
 		"start:switch520-auto-secret": "tsx ./scripts/start.ts switch520-auto-secret",
 		"build:switch520-auto-secret": "tsx ./scripts/build.ts switch520-auto-secret",
 		"start": "tsx ./scripts/start.ts",
-		"build": "tsx ./scripts/build.ts"
+		"build": "tsx ./scripts/build.ts",
+		"release": "bash ./scripts/release.sh"
 	},
 	"private": true,
 	"devDependencies": {

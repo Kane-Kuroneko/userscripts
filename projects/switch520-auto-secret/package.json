@@ -1,7 +1,8 @@
 {
 	"scripts": {
 		"start": "cd ../../ && npm run start switch520-auto-secret",
-		"build": "cd ../../ && npm run build switch520-auto-secret"
+		"build": "cd ../../ && npm run build switch520-auto-secret",
+		"release" : "cd ../../ && bash ./scripts/release.sh switch520-auto-secret"
 	},
 	"dependencies": {
 		"jsqr": "^1.4.0"
