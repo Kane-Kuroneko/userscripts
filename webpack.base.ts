@@ -16,6 +16,7 @@ const conf: Configuration = {
 		'antd' : 'antd' ,
 		'mobx' : 'mobx' ,
 		'dayjs' : 'dayjs' ,
+		'jsqr' : 'jsQR' ,
 	} ,
 	devtool : false ,
 	module : {
