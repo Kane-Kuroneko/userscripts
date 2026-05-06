@@ -52,6 +52,7 @@ jobs:
               commit_message: 'chore: update patch-notes.html from release ${{ github.event.release.tag_name }}'
               file_pattern: patch-notes.html
               create_branch: true
+              push_options: '--force-with-lease'
 
          - name: Upload build artifacts
            uses: softprops/action-gh-release@v2
