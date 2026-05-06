@@ -1,7 +1,15 @@
-<h2>🎉 7.0.8 版本更新</h2>
+<p style="background:#fff3cd; padding:15px; border-radius:8px;">
+    <strong>⚠️ 强烈建议对此脚本开启自动更新！</strong>
+</p>
+<h1>📝 更新日志</h1>
+
+<h2>🎉 7.0.11 版本更新</h2>
 <ul>
-    <li>修复了switch618开启弹窗模式后仍然打开新窗口</li>
-<h3>🚀 主要功能更新</h3>
+    <li>修复了switch618页面其他位置的点击事件不生效</li>
+</ul>
+<hr>
+<h3>🚀 7.x 主要功能更新</h3>
+
 <h4>✨ 新增 fzgamer.com 站点支持</h4>
 <ul>
     <li><strong>🔍 搜索按钮集成</strong>：在 fzgamer.com 站点添加"去Steam搜索"按钮，方便用户快速跳转至Steam平台搜索游戏</li>
@@ -15,18 +23,27 @@
     </li>
 </ul>
 
+<h4>🔧 fzgamer.com 弹窗功能修复</h4>
+<ul>
+    <li><strong>修复 main body 区域弹窗失效问题</strong>：
+        <ul>
+            <li>问题：原选择器仅匹配 <code>.widget-ajaxpager</code>，导致 main body 区域的文章卡片无法触发弹窗</li>
+            <li>解决：扩展选择器为 <code>.widget-ajaxpager, .ajaxpager</code>，兼容不同页面结构的容器</li>
+            <li>影响：现在首页 main body 区域、侧边栏等所有位置的文章卡片均可正常打开弹窗</li>
+        </ul>
+    </li>
+    <li><strong>优化事件监听逻辑</strong>：移除调试代码，避免在点击非文章区域时产生 TypeError 错误</li>
+</ul>
+
 <h4>🎯 弹窗浏览体验升级</h4>
 <ul>
     <li>对gamer520的其它位置的卡片也适配了弹窗浏览功能</li>
 </ul>
+
 <hr>
 
-<h2>🎊 以下是 6.0 更新内容</h2>
+<h2>🎊 6.x 更新内容</h2>
 <p><strong>🔥 史上最强下载体验升级！二维码自动转直链 + Steam 中文搜索精准命中！</strong></p>
-
-<p style="background:#fff3cd; padding:15px; border-radius:8px;">
-    <strong>⚠️ 强烈建议对此脚本开启自动更新！</strong>
-</p>
 
 <h3>✨ 6.0.0 亮点功能</h3>
 <ul>
@@ -52,7 +69,6 @@
 <ul>
     <li>✅ 仅在 TamperMonkey + Chrome 下充分测试通过</li>
     <li>⚠️ 其他浏览器或脚本管理器请谨慎使用</li>
-    <li>💬 如遇任何问题欢迎随时反馈</li>
 </ul>
 
 <hr>
@@ -60,7 +76,8 @@
 <blockquote>💖 喜欢这个脚本？欢迎 Star / 收藏 / 反馈建议！</blockquote>
 
 <h3>📸 效果展示</h3>
-<img width=400px src="https://pic3.zhimg.com/100/v2-17bb71a1583dd314984dde3d55c98dd4_r.jpg" alt="预览图1">
-<img width=400px src="https://pic2.zhimg.com/100/v2-8b3c026dabeb2019eb79d764fbb57841_r.jpg" alt="预览图2">
-<img width=400px src="https://picx.zhimg.com/100/v2-c58a5a77b2a55a976627aaa817bd92e9_r.jpg" alt="预览图3">
-<img width=400px src="https://pic2.zhimg.com/100/v2-3ff7f0abb431bb2bf26c6e591e18e033_r.jpg" alt="预览图4">
+<img width="400px" src="https://pic3.zhimg.com/100/v2-17bb71a1583dd314984dde3d55c98dd4_r.jpg" alt="预览图1">
+<img width="400px" src="https://pic2.zhimg.com/100/v2-8b3c026dabeb2019eb79d764fbb57841_r.jpg" alt="预览图2">
+<img width="400px" src="https://picx.zhimg.com/100/v2-c58a5a77b2a55a976627aaa817bd92e9_r.jpg" alt="预览图3">
+<img width="400px" src="https://pic2.zhimg.com/100/v2-3ff7f0abb431bb2bf26c6e591e18e033_r.jpg" alt="预览图4">
+
