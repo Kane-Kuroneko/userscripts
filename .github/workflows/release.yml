@@ -21,8 +21,17 @@ jobs:
            id: parse-tag
            run: |
               TAG_NAME=${GITHUB_REF#refs/tags/}
-              PROJECT_NAME=$(echo $TAG_NAME | cut -d'/' -f1)
-              VERSION=$(echo $TAG_NAME | cut -d'/' -f2)
+              
+              # 判断 tag 格式：project-name/version 或 version
+              if echo "$TAG_NAME" | grep -q '/'; then
+                 # 格式: project-name/1.2.3
+                 PROJECT_NAME=$(echo "$TAG_NAME" | cut -d'/' -f1)
+                 VERSION=$(echo "$TAG_NAME" | cut -d'/' -f2)
+              else
+                 # 格式: 1.2.3 (默认项目)
+                 PROJECT_NAME="switch520-auto-secret"
+                 VERSION="$TAG_NAME"
+              fi
               
               echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_OUTPUT
               echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
