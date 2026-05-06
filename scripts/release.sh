@@ -53,7 +53,7 @@ fi
 
 PROJECT_NAME=$1
 VERSION=$2
-TAG_NAME="${PROJECT_NAME}/v${VERSION}"
+TAG_NAME="${PROJECT_NAME}/${VERSION}"
 
 # 检查项目是否存在
 if [ ! -d "projects/${PROJECT_NAME}" ]; then
@@ -77,7 +77,7 @@ print_info "📦 准备发布项目"
 print_info "==========================================="
 echo ""
 print_info "项目名称: ${PROJECT_NAME}"
-print_info "版本号:   v${VERSION}"
+print_info "版本号:   ${VERSION}"
 print_info "Tag:      ${TAG_NAME}"
 echo ""
 
@@ -103,7 +103,7 @@ fi
 
 # 构建项目
 print_info "构建项目 ${PROJECT_NAME}..."
-print_info "使用版本号: v${VERSION}"
+print_info "使用版本号: ${VERSION}"
 
 # 设置环境变量，让构建使用指定版本号
 export SCRIPT_VERSION="${VERSION}"
@@ -143,7 +143,7 @@ echo ""
 
 # 创建 Tag
 print_info "创建 Tag: ${TAG_NAME}"
-git tag -a "${TAG_NAME}" -m "Release ${PROJECT_NAME} v${VERSION}"
+git tag -a "${TAG_NAME}" -m "Release ${PROJECT_NAME} ${VERSION}"
 
 # 推送 Tag
 print_info "推送 Tag 到远程仓库..."

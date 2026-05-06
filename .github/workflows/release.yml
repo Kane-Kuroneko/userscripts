@@ -5,7 +5,7 @@ permissions:
 on:
    push:
       tags:
-         - '**/v*'  # 匹配格式: project-name/v1.2.3
+         - '**/*.*.*'  # 匹配格式: project-name/1.2.3
 
 jobs:
    parse-and-build:
@@ -22,8 +22,7 @@ jobs:
            run: |
               TAG_NAME=${GITHUB_REF#refs/tags/}
               PROJECT_NAME=$(echo $TAG_NAME | cut -d'/' -f1)
-              VERSION_WITH_V=$(echo $TAG_NAME | cut -d'/' -f2)
-              VERSION=${VERSION_WITH_V#v}
+              VERSION=$(echo $TAG_NAME | cut -d'/' -f2)
               
               echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_OUTPUT
               echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
