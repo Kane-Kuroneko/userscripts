@@ -95,70 +95,108 @@ export const reaxel_OpenInModal = reaxel(() => {
 	useMatchDomain({
 		includes : [ 'fzgamer' ] ,
 	} , () => {
-		const containerEls = document.querySelectorAll('.widget-ajaxpager');
+		console.log('[fzgamer-modal] 初始化 fzgamer 弹窗监听器');
 		
-		containerEls.forEach((containerEl) => {
+		// 监听 .widget-ajaxpager 和 .ajaxpager 容器（兼容不同页面结构）
+		const containerEls = document.querySelectorAll('.widget-ajaxpager, .ajaxpager');
+		console.log('[fzgamer-modal] 找到 .widget-ajaxpager/.ajaxpager 容器数量:', containerEls.length);
+		
+		containerEls.forEach((containerEl, index) => {
+			console.log(`[fzgamer-modal] 为容器[${index}] 添加点击监听器:`, containerEl.className);
 			containerEl.addEventListener('click' , async ( e ) => {
+				console.log('[fzgamer-modal] ⚡ 容器被点击！容器类名:', containerEl.className);
+				console.log('[fzgamer-modal] 容器元素:', containerEl);
+				console.log('[fzgamer-modal] 事件目标:', e.target);
+				
 				const modalModeEnabled = await GM.getValue('options::modal-mode' , true);
+				console.log('[fzgamer-modal] modal-mode 状态:', modalModeEnabled);
 				
 				if(!modalModeEnabled){
+					console.log('[fzgamer-modal] modal-mode 已关闭，跳过处理');
 					return;
 				}
 				
 				const path = e.composedPath();
+				console.log('[fzgamer-modal] 点击路径:', path);
 				
 				const cardEl = path.find((p: HTMLElement) => {
 					const isPostsItem = p.tagName === 'POSTS' && p.classList?.contains('posts-item');
 					const isPostsMini = p.classList?.contains('posts-mini') && p.classList?.contains('ajax-item');
+					console.log('[fzgamer-modal] 🔍 检查元素:', p.tagName, p.className, '=> isPostsItem:', isPostsItem, 'isPostsMini:', isPostsMini);
 					return isPostsItem || isPostsMini;
 				}) as HTMLElement;
 				
+				console.log('[fzgamer-modal] 查找结果 cardEl:', cardEl);
+				
 				if(cardEl){
+					console.log('[fzgamer-modal] 找到卡片元素:', cardEl.tagName, cardEl.className);
 					e.preventDefault();
 					e.stopPropagation();
 					
 					const linkEl = cardEl.querySelector('.item-thumbnail a, .item-heading a, a') as HTMLAnchorElement;
+					console.log('[fzgamer-modal] 查找链接元素:', linkEl);
 					
 					if(linkEl && linkEl.href){
+						console.log('[fzgamer-modal] 找到链接:', linkEl.href);
 						setState({
 							iframeURL : linkEl.href ,
 							modalOpened : true ,
 						});
+					} else {
+						console.log('[fzgamer-modal] 未找到有效链接');
 					}
+				} else {
+					console.log('[fzgamer-modal] 未找到匹配的卡片元素');
 				}
 			});
 		});
 		
+		// 监听 .zib-widget.hot-posts 容器
 		const hotPostsContainers = document.querySelectorAll('.zib-widget.hot-posts');
+		console.log('[fzgamer-modal] 找到 .zib-widget.hot-posts 容器数量:', hotPostsContainers.length);
 		
-		hotPostsContainers.forEach((containerEl) => {
+		hotPostsContainers.forEach((containerEl, index) => {
+			console.log(`[fzgamer-modal] 为 .zib-widget.hot-posts[${index}] 添加点击监听器`);
 			containerEl.addEventListener('click' , async ( e ) => {
+				console.log('[fzgamer-modal] .zib-widget.hot-posts 容器被点击');
+				
 				const modalModeEnabled = await GM.getValue('options::modal-mode' , true);
+				console.log('[fzgamer-modal] modal-mode 状态:', modalModeEnabled);
 				
 				if(!modalModeEnabled){
+					console.log('[fzgamer-modal] modal-mode 已关闭，跳过处理');
 					return;
 				}
 				
 				const path = e.composedPath();
+				console.log('[fzgamer-modal] 点击路径:', path);
 				
 				const cardEl = path.find((p: HTMLElement) => {
 					const isDirectChild = p.parentElement === containerEl;
 					const isHotPostCard = p.classList?.contains('flex') || (p.classList?.contains('relative') && isDirectChild);
+					console.log('[fzgamer-modal] 检查 hot-posts 元素:', p.tagName, p.className, 'isDirectChild:', isDirectChild, 'isHotPostCard:', isHotPostCard);
 					return isHotPostCard;
 				}) as HTMLElement;
 				
 				if(cardEl){
+					console.log('[fzgamer-modal] 找到 hot-posts 卡片元素:', cardEl.tagName, cardEl.className);
 					e.preventDefault();
 					e.stopPropagation();
 					
 					const linkEl = cardEl.querySelector('a') as HTMLAnchorElement;
+					console.log('[fzgamer-modal] 查找链接元素:', linkEl);
 					
 					if(linkEl && linkEl.href){
+						console.log('[fzgamer-modal] 找到链接:', linkEl.href);
 						setState({
 							iframeURL : linkEl.href ,
 							modalOpened : true ,
 						});
+					} else {
+						console.log('[fzgamer-modal] 未找到有效链接');
 					}
+				} else {
+					console.log('[fzgamer-modal] 未找到匹配的 hot-posts 卡片元素');
 				}
 			});
 		});
