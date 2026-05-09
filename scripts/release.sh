@@ -126,24 +126,26 @@ echo ""
 
 # 检查是否有未提交的更改
 if [ -n "$(git status --porcelain)" ]; then
-    print_warning "检测到未提交的更改"
+    print_error "检测到未提交的更改!"
+    print_warning "请先提交并推送所有更改，然后再执行发布"
     echo ""
-    read -p "是否继续发布? 这些更改不会被包含在本次发布中 (y/N) " -n 1 -r
-    echo ""
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        print_warning "发布已取消"
-        exit 0
-    fi
+    print_info "执行命令:"
+    echo "  git add ."
+    echo "  git commit -m \"your message\""
+    echo "  git push"
+    exit 1
 fi
 
+echo ""
 print_info "==========================================="
 print_info "🏷️  步骤 2: 创建并推送 Tag"
 print_info "==========================================="
 echo ""
 
-# 创建 Tag
+# 创建 Tag（使用简单的说明）
 print_info "创建 Tag: ${TAG_NAME}"
 git tag -a "${TAG_NAME}" -m "Release ${PROJECT_NAME} ${VERSION}"
+print_success "Tag 创建成功"
 
 # 推送 Tag
 print_info "推送 Tag 到远程仓库..."
@@ -161,18 +163,19 @@ print_success "🎉 发布流程已启动!"
 print_success "==========================================="
 echo ""
 print_info "CI/CD 正在自动执行:"
-echo "  1. 解析项目名和版本号"
+echo "  1. 解析版本号"
 echo "  2. 安装依赖"
-echo "  3. 构建项目"
-echo "  4. 创建 GitHub Release"
-echo "  5. 上传构建产物"
-echo "  6. 触发 GreasyFork 同步"
+echo "  3. 构建项目（不进入 watch 模式）"
+echo "  4. 读取 Readme.md 作为 Release 描述"
+echo "  5. 创建 GitHub Release"
+echo "  6. 上传构建产物"
+echo "  7. 触发 GreasyFork 同步"
 echo ""
 print_info "查看进度:"
-echo "  https://github.com/${GITHUB_REPOSITORY:-YOUR_USERNAME/tamperMonkey-scripts}/actions"
+echo "  https://github.com/Kane-Kuroneko/tamperMonkey-scripts/actions"
 echo ""
 print_info "发布完成后，Release 将在这里:"
-echo "  https://github.com/${GITHUB_REPOSITORY:-YOUR_USERNAME/tamperMonkey-scripts}/releases/tag/${TAG_NAME}"
+echo "  https://github.com/Kane-Kuroneko/tamperMonkey-scripts/releases/tag/${TAG_NAME}"
 echo ""
-print_warning "提示: 发布后记得补充 Release Notes!"
+print_warning "提示: Release 描述自动从 Readme.md 读取，请确保已更新"
 echo ""

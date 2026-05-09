@@ -119,8 +119,8 @@ git push
 
 **执行命令：**
 ```bash
-# 创建 annotated tag（仅使用版本号）
-git tag -a "<version>" -m "Release Notes 内容"
+# 创建 annotated tag（使用简单的 Release 说明）
+git tag -a "<version>" -m "Release <project-name> <version>"
 
 # 推送 tag 触发 CI/CD
 git push origin <version>
@@ -128,20 +128,21 @@ git push origin <version>
 
 **示例：**
 ```bash
-git tag -a "7.0.12" -m "## 🎉 7.0.12 版本更新\n\n### 📝 更新\n- 更新了userscript description描述"
+git tag -a "7.0.12" -m "Release switch520-auto-secret 7.0.12"
 git push origin 7.0.12
 ```
 
 **⚠️ 重要：**
-- GitHub Release 的 body 内容会**自动从 Readme.md 文件中解析**
-- Tag 的 message 仅作为 Release 的临时描述，最终会被 Readme.md 内容覆盖
+- GitHub Release 的 body 内容会**自动从 Readme.md 文件中读取完整内容**
+- Tag 的 message 仅作为 Git 标签的注释，不影响 GitHub Release 描述
+- **无需人工编辑 Release Notes**，Agent 或用户应提前编辑好 Readme.md
 
 ### 步骤 5: CI/CD 自动执行
 
 推送 Tag 后，GitHub Actions 自动执行以下流程：
 
 ```
-Push Tag → Parse Tag → Build → Create Release → Upload Assets → Trigger Webhook
+Push Tag → Parse Tag → Build → Read Readme.md → Create Release → Upload Assets → Trigger Webhook
 ```
 
 **工作流文件:** `.github/workflows/release.yml`
@@ -153,10 +154,16 @@ Push Tag → Parse Tag → Build → Create Release → Upload Assets → Trigge
 4. **构建项目**: `npm run build:<project-name>` (带 `SCRIPT_VERSION` 环境变量)
    - ⚠️ **CI环境中构建不进入 watch 模式**，一次性构建完成后立即退出
 5. **验证产物**: 检查 `dist/` 目录
-6. **读取 Release Notes**: 从项目的 `Readme.md` 文件中读取完整内容
-7. **创建 Release**: 使用 `softprops/action-gh-release@v2`，应用 Readme.md 内容作为 Release body
+6. **读取 Readme.md**: 从项目的 `Readme.md` 文件中读取**完整内容**作为 Release body
+7. **创建 Release**: 使用 `softprops/action-gh-release@v2`，应用 Readme.md 内容
 8. **上传资产**: `projects/<project-name>/dist/**`
 9. **触发 Webhook**: 通知 GreasyFork 同步 (如果配置了 secret)
+
+**💡 自动化说明：**
+- ❌ **不需要**人工编辑 Release Notes
+- ❌ **不会**弹出编辑器让用户输入
+- ✅ **直接读取** Readme.md 的完整内容
+- ✅ **前提条件**：发布前必须确保 Readme.md 已更新到最新版本
 
 ## ⚠️ 注意事项
 
@@ -169,7 +176,7 @@ Push Tag → Parse Tag → Build → Create Release → Upload Assets → Trigge
 ### 2. Readme.md 同步更新（关键）
 - ✅ **必须同步更新**: CHANGELOG.md 和 Readme.md 两个文件
 - ✅ **置顶规则**: 最新版本更新必须放在 Readme.md 的顶部（`<h1>📝 更新日志</h1>` 之后）
-- ✅ **Release 描述来源**: GitHub Release 的 body 内容直接从 Readme.md 文件解析
+- ✅ **Release 描述来源**: GitHub Release 的 body 内容直接从 Readme.md 文件读取完整内容
 - ❌ **禁止**: 仅更新 CHANGELOG.md 而忘记更新 Readme.md
 - 💡 **检查方法**: 发布前确认 Readme.md 中已包含最新版本更新
 
@@ -184,138 +191,21 @@ Push Tag → Parse Tag → Build → Create Release → Upload Assets → Trigge
 - ✅ **CI环境**: 构建脚本应一次性完成，不进入 watch 模式
 - ✅ **本地开发**: 可以 watch 模式监听文件变化
 - ❌ **问题表现**: Actions 日志中出现"正在监听变动以重打包"说明进入了 watch 模式
-- 💡 **解决方案**: 在 release.yml 中设置环境变量或使用不同的构建配置
+- 💡 **解决方案**: 在 release.yml 中设置 `NODE_ENV=production` 环境变量
 - 💡 **检查方法**: 查看 Actions 日志，确认构建完成后立即退出
 
 ### 5. GitHub Release 描述来源
 - ✅ **来源文件**: `projects/<project-name>/Readme.md`（完整文件内容）
 - ✅ **解析方式**: CI/CD 自动读取 Readme.md 并作为 Release body
-- ❌ **不是**: Tag message（tag message 仅作为临时描述）
+- ❌ **不是**: Tag message（tag message 仅作为 Git 标签注释）
 - ❌ **不是**: CHANGELOG.md（仅用于项目内部的更新日志）
 - 💡 **确保**: Readme.md 格式正确且包含完整的版本信息
 
-## 🔧 Release Notes 自动更新功能
-
-### 工作原理
-
-**本地 → GitHub 的数据流：**
-```
-用户编辑模板 → 保存为 Annotated Tag Message → 推送 Tag → 
-GitHub Actions 读取 Tag Message → 应用到 Release Body
-```
-
-### 关键技术点
-
-**1. Annotated Tag vs Lightweight Tag**
-- ✅ **Annotated Tag** (`git tag -a`): 包含 message，可存储 Release Notes
-- ❌ **Lightweight Tag** (`git tag`): 只是 commit 的引用，无额外信息
-
-**2. GitHub API 读取 Tag Message**
-```javascript
-// 获取 tag reference
-const { data: ref } = await github.rest.git.getRef({
-   ref: `tags/${tagName}`
-});
-
-// 如果是 annotated tag，获取 tag object
-if (ref.object.type === 'tag') {
-   const { data: tagObject } = await github.rest.git.getTag({
-      tag_sha: ref.object.sha
-   });
-   
-   // tagObject.message 就是 Release Notes
-   const releaseNotes = tagObject.message;
-}
-```
-
-**3. 注释过滤**
-- 模板中以 `#` 开头的行会被自动过滤
-- 空行会被压缩
-- 保留 Markdown 格式
-
-### 自定义编辑器
-
-**设置默认编辑器：**
-```bash
-# 使用 VS Code
-export EDITOR="code -w"
-
-# 使用 Vim
-export EDITOR=vim
-
-# 使用 Nano
-export EDITOR=nano
-
-# 永久设置（添加到 ~/.bashrc 或 ~/.zshrc）
-echo 'export EDITOR="code -w"' >> ~/.bashrc
-source ~/.bashrc
-```
-
-### 编辑已有 Release Notes
-
-**方法 1: GitHub Web 界面**
-1. 打开 Release 页面
-2. 点击编辑按钮
-3. 修改描述
-4. 保存
-
-**方法 2: GitHub API**
-```bash
-# 使用 gh CLI
-gh release edit <tag> --notes "<new notes>"
-
-# 或使用 curl
-curl -X PATCH \
-  -H "Authorization: token <TOKEN>" \
-  -H "Accept: application/vnd.github.v3+json" \
-  https://api.github.com/repos/<owner>/<repo>/releases/<release_id> \
-  -d '{"body": "New release notes"}'
-```
-
-**方法 3: GitHub Actions**
-- 手动触发 workflow
-- 使用 `softprops/action-gh-release@v2` 更新
-
-### 模板定制
-
-**修改模板文件：** `.github/RELEASE_TEMPLATE.md`
-
-**示例模板：**
-```markdown
-# 这是注释，不会出现在 Release Notes 中
-
-## 🎉 新版本亮点
-
-- 主要更新内容
-
-## 📋 详细更新内容
-
-### ✨ 新增
-- 功能 1
-
-### 🐛 修复
-- Bug 1
-
-### 🔧 优化
-- 优化 1
-```
-
-### 故障排除
-
-**问题 1: Release Notes 未显示**
-- 检查是否使用了 `git tag -a`（annotated tag）
-- 查看 Actions 日志，确认是否正确读取 tag message
-- 验证 tag 类型：`git show <tag>`
-
-**问题 2: 编辑器未打开**
-- 检查 `$EDITOR` 环境变量：`echo $EDITOR`
-- 设置默认编辑器：`export EDITOR=nano`
-
-**问题 3: 注释未过滤**
-- 确保注释行以 `#` 开头
-- 检查 `grep -v '^#'` 命令是否正常执行
-
----
+### 6. 自动化发布流程
+- ✅ **无需人工干预**: Release Notes 自动从 Readme.md 读取
+- ❌ **不会弹出编辑器**: 不再需要手动编辑 Release Notes
+- ✅ **前提条件**: 发布前必须确保 Readme.md 已更新到最新版本
+- 💡 **Agent 行为**: 自动更新 Readme.md 后直接发布
 
 ## 🔧 常见问题处理
 
@@ -386,7 +276,7 @@ https://github.com/Kane-Kuroneko/tamperMonkey-scripts/releases
 2. ✅ 提交更改: git add + git commit
 3. ✅ 推送更改: git push （必须等待推送完成）
 4. ✅ 本地构建测试: npm run build:<project-name>
-5. ✅ 创建 Tag: git tag -a "<version>" -m "Release Notes"
+5. ✅ 创建 Tag: git tag -a "<version>" -m "Release <project-name> <version>"
 6. ✅ 推送 Tag: git push origin <version> （触发 CI/CD）
 7. ⏳ 等待 CI/CD 完成...
 8. ✅ 发布完成！
@@ -398,6 +288,7 @@ https://github.com/Kane-Kuroneko/tamperMonkey-scripts/releases/tag/<version>
 - 必须先推送代码更改，再推送 Tag
 - Tag 格式仅使用版本号（如 7.0.12），不带项目名前缀
 - GitHub Release 描述自动从 Readme.md 解析
+- 无需人工编辑 Release Notes，直接读取 Readme.md
 ```
 
 ## 🎓 最佳实践
