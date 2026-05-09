@@ -1,6 +1,3 @@
-<p style="background:#fff3cd; padding:15px; border-radius:8px;">
-    <strong>⚠️ 强烈建议对此脚本开启自动更新！</strong>
-</p>
 <h1>📝 更新日志</h1>
 
 <h2>🎉 7.0.12 版本更新</h2>
