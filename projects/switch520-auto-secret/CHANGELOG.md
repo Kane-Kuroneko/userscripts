@@ -3,81 +3,43 @@
 </p>
 <h1>📝 更新日志</h1>
 
+<h2>🎉 7.0.12 版本更新</h2>
+<ul>
+    <li>更新了userscript description描述</li>
+</ul>
+
 <h2>🎉 7.0.11 版本更新</h2>
 <ul>
-    <li>修复了switch618页面其他位置的点击事件不生效</li>
+    <li>修复了fzgamer.com主要区域卡片无法弹窗打开(因为站长修改了页面结构)
+</li>
 </ul>
-<hr>
-<h3>🚀 7.x 主要功能更新</h3>
 
-<h4>✨ 新增 fzgamer.com 站点支持</h4>
+<h2>🚀 7.0.10 版本更新</h2>
 <ul>
-    <li><strong>🔍 搜索按钮集成</strong>：在 fzgamer.com 站点添加"去Steam搜索"按钮，方便用户快速跳转至Steam平台搜索游戏</li>
-    <li><strong>🎮 模态弹窗功能</strong>：支持点击文章列表项弹出模态窗口浏览内容，提供更流畅的浏览体验</li>
-    <li><strong>💡 页面布局优化</strong>：
-        <ul>
-            <li>将游戏视频标题、视频框和温馨提示框移动到版本介绍上方</li>
-            <li>优化页面元素排列顺序，提升视觉层次</li>
-            <li>简化侧栏展示，移除"近期游戏热榜"以上的冗余内容</li>
-        </ul>
-    </li>
+    <li>新增 fzgamer.com 站点支持</li>
+    <li>添加「去Steam搜索」按钮集成</li>
+    <li>支持模态弹窗浏览功能</li>
+    <li>优化页面布局和侧栏展示</li>
 </ul>
 
-<h4>🔧 fzgamer.com 弹窗功能修复</h4>
+<h2>🔧 7.0.9 版本更新</h2>
 <ul>
-    <li><strong>修复 main body 区域弹窗失效问题</strong>：
-        <ul>
-            <li>问题：原选择器仅匹配 <code>.widget-ajaxpager</code>，导致 main body 区域的文章卡片无法触发弹窗</li>
-            <li>解决：扩展选择器为 <code>.widget-ajaxpager, .ajaxpager</code>，兼容不同页面结构的容器</li>
-            <li>影响：现在首页 main body 区域、侧边栏等所有位置的文章卡片均可正常打开弹窗</li>
-        </ul>
-    </li>
-    <li><strong>优化事件监听逻辑</strong>：移除调试代码，避免在点击非文章区域时产生 TypeError 错误</li>
+    <li>修复 fzgamer.com main body 区域弹窗失效问题</li>
+    <li>扩展选择器为 .widget-ajaxpager, .ajaxpager 兼容不同页面结构</li>
+    <li>优化事件监听逻辑，移除调试代码避免 TypeError</li>
+    <li>对 gamer520 其它位置的卡片适配弹窗浏览功能</li>
 </ul>
 
-<h4>🎯 弹窗浏览体验升级</h4>
+<h2>🎊 7.0.0 版本更新</h2>
 <ul>
-    <li>对gamer520的其它位置的卡片也适配了弹窗浏览功能</li>
+    <li>全面适配了fzgamer.com,并优化了详情页结构</li>
 </ul>
 
-<hr>
-
-<h2>🎊 6.x 更新内容</h2>
-<p><strong>🔥 史上最强下载体验升级！二维码自动转直链 + Steam 中文搜索精准命中！</strong></p>
-
-<h3>✨ 6.0.0 亮点功能</h3>
+<h2>🎊 6.0.0 版本更新</h2>
 <ul>
-    <li><strong>📱 二维码自动转直链</strong><br>页面二维码自动识别并转换为直链，一键下载超方便！</li>
-    <li><strong>🔍 Steam 划词搜索全面进化</strong><br>优先使用中文名称搜索，命中率大幅提升！</li>
-    <li><strong>🔗 链接拼接逻辑深度优化</strong><br>修复多处 Bug，各类网盘地址处理更稳定</li>
-    <li><strong>⚙️ 功能调整</strong><br>因 steamzg 站长修改规则，已移除对该站点的弹窗浏览支持</li>
+    <li>📱 二维码自动转直链 - 页面二维码自动识别并转换为直链</li>
+    <li>🔍 Steam 划词搜索全面进化 - 优先使用中文名称搜索，命中率大幅提升</li>
+    <li>🔗 链接拼接逻辑深度优化 - 修复多处 Bug，各类网盘地址处理更稳定</li>
+    <li>⚙️ 功能调整 - 因 steamzg 站长修改规则，已移除对该站点的弹窗浏览支持</li>
 </ul>
-
-<h3>📋 完整功能列表</h3>
-<ol>
-    <li><strong>📱 二维码自动转直链</strong> <em>(6.0.0 新增)</em><br>自动识别页面二维码并生成可点击直链。</li>
-    <li><strong>🔑 下载资源页面自动填充密码</strong><br>自动填充 switch520 等站点常用密码，零操作直达资源。</li>
-    <li><strong>⚡ 简化下载流程</strong><br>点击下载按钮直接进入下载地址页面，无需二次点击「立即下载」。</li>
-    <li><strong>☁️ 百度网盘免输入提取码</strong><br>自动拼接提取码到 URL，并自动填充密码进入资源列表。</li>
-    <li><strong>🎯 搜索优化</strong><br>选中游戏名称后，顶部弹窗一键直达 Steam 中文搜索。</li>
-    <li><strong>🕰️ 古早页面完美兼容</strong><br>自动将老版本页面的网盘地址转为超链接并拼接密码。</li>
-</ol>
-
-<hr>
-
-<h3>⚠️ 使用须知</h3>
-<ul>
-    <li>✅ 仅在 TamperMonkey + Chrome 下充分测试通过</li>
-    <li>⚠️ 其他浏览器或脚本管理器请谨慎使用</li>
-</ul>
-
-<hr>
-
-<blockquote>💖 喜欢这个脚本？欢迎 Star / 收藏 / 反馈建议！</blockquote>
-
-<h3>📸 效果展示</h3>
-<img width="400px" src="https://pic3.zhimg.com/100/v2-17bb71a1583dd314984dde3d55c98dd4_r.jpg" alt="预览图1">
-<img width="400px" src="https://pic2.zhimg.com/100/v2-8b3c026dabeb2019eb79d764fbb57841_r.jpg" alt="预览图2">
-<img width="400px" src="https://picx.zhimg.com/100/v2-c58a5a77b2a55a976627aaa817bd92e9_r.jpg" alt="预览图3">
-<img width="400px" src="https://pic2.zhimg.com/100/v2-3ff7f0abb431bb2bf26c6e591e18e033_r.jpg" alt="预览图4">
 
