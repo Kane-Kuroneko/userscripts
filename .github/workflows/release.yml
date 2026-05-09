@@ -5,7 +5,7 @@ permissions:
 on:
    push:
       tags:
-         - '**/*.*.*'  # 匹配格式: project-name/1.2.3
+         - '*.*.*'  # 匹配格式: 7.0.12 (纯版本号)
 
 jobs:
    parse-and-build:
@@ -22,16 +22,9 @@ jobs:
            run: |
               TAG_NAME=${GITHUB_REF#refs/tags/}
               
-              # 判断 tag 格式：project-name/version 或 version
-              if echo "$TAG_NAME" | grep -q '/'; then
-                 # 格式: project-name/1.2.3
-                 PROJECT_NAME=$(echo "$TAG_NAME" | cut -d'/' -f1)
-                 VERSION=$(echo "$TAG_NAME" | cut -d'/' -f2)
-              else
-                 # 格式: 1.2.3 (默认项目)
-                 PROJECT_NAME="switch520-auto-secret"
-                 VERSION="$TAG_NAME"
-              fi
+              # 直接使用版本号格式 (如 7.0.12)
+              PROJECT_NAME="switch520-auto-secret"
+              VERSION="$TAG_NAME"
               
               echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_OUTPUT
               echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
@@ -68,6 +61,7 @@ jobs:
            run: npm run build:${{ steps.parse-tag.outputs.PROJECT_NAME }}
            env:
               SCRIPT_VERSION: ${{ steps.parse-tag.outputs.VERSION }}
+              NODE_ENV: production
 
          - name: Verify build output
            run: |
@@ -78,35 +72,30 @@ jobs:
               echo "✅ 构建产物已生成:"
               ls -lh projects/${{ steps.parse-tag.outputs.PROJECT_NAME }}/dist/
 
-         - name: Get release info
+         - name: Read Readme.md for release notes
            id: release-info
-           uses: actions/github-script@v7
-           with:
-              script: |
-                 const tagName = '${{ steps.parse-tag.outputs.TAG_NAME }}';
-                 const version = '${{ steps.parse-tag.outputs.VERSION }}';
-                 
-                 // 尝试获取 release 信息
-                 try {
-                    const { data: release } = await github.rest.repos.getReleaseByTag({
-                       owner: context.repo.owner,
-                       repo: context.repo.repo,
-                       tag: tagName
-                    });
-                    
-                    core.setOutput('release_body', release.body || '');
-                    core.setOutput('release_name', release.name || version);
-                 } catch (e) {
-                    core.setOutput('release_body', '');
-                    core.setOutput('release_name', version);
-                 }
+           run: |
+              README_FILE="projects/${{ steps.parse-tag.outputs.PROJECT_NAME }}/Readme.md"
+              
+              if [ -f "$README_FILE" ]; then
+                 echo "✅ 找到 Readme.md 文件"
+                 # 读取完整的 Readme.md 内容作为 Release Notes
+                 RELEASE_NOTES=$(cat "$README_FILE")
+                 echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+                 echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+                 echo "EOF" >> $GITHUB_OUTPUT
+                 echo "📝 Release Notes 长度: ${#RELEASE_NOTES} 字符"
+              else
+                 echo "❌ 错误: Readme.md 文件不存在"
+                 exit 1
+              fi
 
          - name: Create GitHub Release
            uses: softprops/action-gh-release@v2
            with:
               tag_name: ${{ steps.parse-tag.outputs.TAG_NAME }}
               name: ${{ steps.parse-tag.outputs.PROJECT_NAME }} ${{ steps.parse-tag.outputs.VERSION }}
-              body: ${{ steps.release-info.outputs.release_body }}
+              body: ${{ steps.release-info.outputs.release_notes }}
               files: projects/${{ steps.parse-tag.outputs.PROJECT_NAME }}/dist/**
               draft: false
               prerelease: false
