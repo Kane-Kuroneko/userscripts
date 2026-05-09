@@ -94,7 +94,7 @@ jobs:
            uses: softprops/action-gh-release@v2
            with:
               tag_name: ${{ steps.parse-tag.outputs.TAG_NAME }}
-              name: ${{ steps.parse-tag.outputs.PROJECT_NAME }} ${{ steps.parse-tag.outputs.VERSION }}
+              name: ${{ steps.parse-tag.outputs.VERSION }}
               body: ${{ steps.release-info.outputs.release_notes }}
               files: projects/${{ steps.parse-tag.outputs.PROJECT_NAME }}/dist/**
               draft: false
