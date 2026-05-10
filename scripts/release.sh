@@ -124,18 +124,6 @@ fi
 print_success "构建产物已生成: projects/${PROJECT_NAME}/dist/"
 echo ""
 
-# 检查是否有未提交的更改
-if [ -n "$(git status --porcelain)" ]; then
-    print_error "检测到未提交的更改!"
-    print_warning "请先提交并推送所有更改，然后再执行发布"
-    echo ""
-    print_info "执行命令:"
-    echo "  git add ."
-    echo "  git commit -m \"your message\""
-    echo "  git push"
-    exit 1
-fi
-
 echo ""
 print_info "==========================================="
 print_info "🏷️  步骤 2: 创建并推送 Tag"

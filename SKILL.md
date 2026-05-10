@@ -84,9 +84,9 @@ ls -1 projects/
 - 将内容格式化为 HTML 格式 (h2 + ul)
 - **同时更新 CHANGELOG.md 和 Readme.md 两个文件**
 
-### 步骤 3: 提交更改并推送
+### 步骤 3: 提交更改并推送（可选）
 
-**⚠️ 重要：在发布前必须先将所有更改提交并推送到远端！**
+**💡 建议：在发布前将CHANGELOG.md和Readme.md的更改提交并推送到远端**
 
 **Commit Message 格式：**
 ```
@@ -104,9 +104,9 @@ git push
 ```
 
 **Agent 行为：**
-- 必须先执行 `git push` 将更改推送到远端
-- **确认推送成功后**才能继续执行发布脚本
-- 如果未推送就执行发布，会导致 CI/CD 构建时使用的是旧版 Readme.md
+- 建议先执行 `git push` 将更改推送到远端
+- **如果未推送就执行发布**，CI/CD 构建时会使用远端的 Readme.md（可能不是最新版本）
+- **允许工作区有未提交的更改**，发布流程不会因此中断
 
 ### 步骤 4: 创建并推送 Tag（直接使用版本号）
 
@@ -180,12 +180,13 @@ Push Tag → Parse Tag → Build → Read Readme.md → Create Release → Uploa
 - ❌ **禁止**: 仅更新 CHANGELOG.md 而忘记更新 Readme.md
 - 💡 **检查方法**: 发布前确认 Readme.md 中已包含最新版本更新
 
-### 3. 发布前必须提交并推送
-- ✅ **先提交**: 将 CHANGELOG.md 和 Readme.md 的更改 commit
-- ✅ **先推送**: 执行 `git push` 将更改推送到远端
-- ✅ **后发布**: 确认推送成功后再创建和推送 Tag
-- ❌ **禁止**: 未推送就执行发布（会导致 CI/CD 使用旧版 Readme.md）
+### 3. 发布前提交和推送
+- ✅ **建议提交**: 将 CHANGELOG.md 和 Readme.md 的更改 commit
+- ✅ **建议推送**: 执行 `git push` 将更改推送到远端
+- ✅ **后发布**: 创建和推送 Tag
+- ⚠️ **注意**: 如果未推送 Readme.md，CI/CD 将使用远端的旧版本
 - 💡 **流程**: `git add` → `git commit` → `git push` → `git tag` → `git push origin <tag>`
+- 💡 **灵活性**: 允许工作区有未提交的更改，不会阻止发布
 
 ### 4. CI/CD 构建不进入 watch 模式
 - ✅ **CI环境**: 构建脚本应一次性完成，不进入 watch 模式
@@ -273,8 +274,8 @@ https://github.com/Kane-Kuroneko/tamperMonkey-scripts/releases
 
 步骤执行:
 1. ✅ 更新 CHANGELOG.md 和 Readme.md（最新版本放在Readme顶部）
-2. ✅ 提交更改: git add + git commit
-3. ✅ 推送更改: git push （必须等待推送完成）
+2. 🔄 提交更改: git add + git commit （建议但非必须）
+3. 🔄 推送更改: git push （建议但非必须）
 4. ✅ 本地构建测试: npm run build:<project-name>
 5. ✅ 创建 Tag: git tag -a "<version>" -m "Release <project-name> <version>"
 6. ✅ 推送 Tag: git push origin <version> （触发 CI/CD）
@@ -285,10 +286,11 @@ https://github.com/Kane-Kuroneko/tamperMonkey-scripts/releases
 https://github.com/Kane-Kuroneko/tamperMonkey-scripts/releases/tag/<version>
 
 ⚠️ 重要提醒:
-- 必须先推送代码更改，再推送 Tag
+- 建议先推送代码更改，再推送 Tag（确保CI/CD使用最新Readme.md）
 - Tag 格式仅使用版本号（如 7.0.12），不带项目名前缀
 - GitHub Release 描述自动从 Readme.md 解析
 - 无需人工编辑 Release Notes，直接读取 Readme.md
+- 允许工作区有未提交的更改，不会阻止发布流程
 ```
 
 ## 🎓 最佳实践
@@ -296,10 +298,9 @@ https://github.com/Kane-Kuroneko/tamperMonkey-scripts/releases/tag/<version>
 1. **发布前检查清单：**
    - [ ] CHANGELOG.md 已更新
    - [ ] Readme.md 已更新（最新版本在顶部）
-   - [ ] 代码已提交并推送到远端
+   - [ ] 建议提交并推送代码更改到远端
    - [ ] 版本号符合语义化版本规范（纯数字，不带 v 前缀）
    - [ ] 本地构建测试通过
-   - [ ] 没有未提交的重要更改
 
 2. **版本号策略：**
    - 小修复 → `patch` 版本 (`1.5.0` → `1.5.1`)

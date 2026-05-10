@@ -40,7 +40,7 @@ git push origin switch520-auto-secret/v1.5.0
 
 ## 📋 发布前检查清单
 
-- [ ] 代码已提交并推送到主分支
+- [ ] 代码已提交并推送到主分支（建议）
 - [ ] 本地构建成功 (`npm run build:项目名`)
 - [ ] 测试过构建的脚本文件
 - [ ] 准备好 Release Notes 内容
