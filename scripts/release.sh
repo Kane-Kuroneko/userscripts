@@ -53,7 +53,7 @@ fi
 
 PROJECT_NAME=$1
 VERSION=$2
-TAG_NAME="${PROJECT_NAME}/${VERSION}"
+TAG_NAME="${VERSION}"
 
 # 检查项目是否存在
 if [ ! -d "projects/${PROJECT_NAME}" ]; then

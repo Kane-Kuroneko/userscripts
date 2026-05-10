@@ -13,7 +13,7 @@
 ./scripts/release.sh <项目名> <版本号>
 
 # 示例
-./scripts/release.sh switch520-auto-secret 1.5.0
+./scripts/release.sh switch520-auto-secret 7.0.12
 ```
 
 脚本会自动:
@@ -30,10 +30,10 @@
 npm run build:switch520-auto-secret
 
 # 2. 创建 Tag
-git tag switch520-auto-secret/v1.5.0
+git tag 7.0.12
 
 # 3. 推送触发 CI/CD
-git push origin switch520-auto-secret/v1.5.0
+git push origin 7.0.12
 ```
 
 ---
@@ -51,14 +51,13 @@ git push origin switch520-auto-secret/v1.5.0
 ## 🏷️ Tag 格式
 
 ```
-{项目名}/v{版本号}
+{版本号}
 ```
 
 **示例**:
 ```
-switch520-auto-secret/v1.5.0
-github-enhancer/v0.2.0
-test-tampermonkey-jsx/v1.0.0-beta.1
+7.0.12
+1.5.0-beta.1
 ```
 
 ---
@@ -88,7 +87,7 @@ https://github.com/YOUR_USERNAME/tamperMonkey-scripts/actions
 ### 查看 Release
 
 ```
-https://github.com/YOUR_USERNAME/tamperMonkey-scripts/releases/tag/项目名/v版本号
+https://github.com/YOUR_USERNAME/tamperMonkey-scripts/releases/tag/版本号
 ```
 
 ### 编辑 Release Notes
@@ -116,8 +115,8 @@ Actions → 失败的 Workflow → 查看详细错误
 
 ```bash
 # 删除 Tag
-git push --delete origin 项目名/v版本号
-git tag -d 项目名/v版本号
+git push --delete origin 版本号
+git tag -d 版本号
 
 # 在 GitHub 删除 Release
 ```
@@ -126,8 +125,8 @@ git tag -d 项目名/v版本号
 
 ```bash
 # 使用 beta 版本测试
-git tag 项目名/v1.0.0-beta.1
-git push origin 项目名/v1.0.0-beta.1
+git tag 1.0.0-beta.1
+git push origin 1.0.0-beta.1
 ```
 
 ---
