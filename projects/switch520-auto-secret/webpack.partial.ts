@@ -23,7 +23,7 @@ const conf: Configuration = {
 				// 否则使用默认版本号（本地开发时可用）
 				version : process.env.SCRIPT_VERSION || '7.1.0' ,
 				author : 'Kane' ,
-				description : '优化多个游戏下载站:二维码转链接|弹窗浏览|自动填写密码|下载按钮直达下载地址页|去Steam查看游戏\r\n包括switch520、switch618、acgxj、fzgamer、steamzg等' ,
+				description : '优化多个游戏下载站:二维码转链接|弹窗浏览|自动填写密码|下载按钮直达下载地址页|去Steam查看游戏。包括switch520、switch618、acgxj、fzgamer、steamzg等' ,
 				namespace : 'http://tampermonkey.net/' ,
 				icon : 'https://www.switch618.com/wp-content/uploads/2024/05/23154031569.webp',
 				license : 'MIT',
