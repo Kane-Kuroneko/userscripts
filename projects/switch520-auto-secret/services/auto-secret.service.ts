@@ -64,7 +64,7 @@ function initGamer520AutoSecret(): void {
 		for (const selector of titleSelectors) {
 			const elements = document.querySelectorAll(selector);
 			for (const el of elements) {
-				const extracted = extractPasswordFromTitle(el.innerText);
+				const extracted = extractPasswordFromTitle((el as HTMLElement).innerText);
 				if (extracted) {
 					secret = extracted;
 					break;

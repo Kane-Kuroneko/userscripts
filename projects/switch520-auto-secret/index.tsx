@@ -26,6 +26,7 @@ import { initBaiduPanAutoSubmitService } from './services/baidupan-auto-submit.s
 import { initModalModeService } from './services/modal-mode.service';
 import { initContextMenuService } from './services/context-menu.service';
 import { initQrcodeConverterService } from './services/qrcode-converter.service';
+import { initGamer520PopupBlocker } from './services/gamer520-popup-blocker.service';
 import { initSearchOnSelect } from './features/search-on-select';
 import { initSearchInSteam } from './features/search-in-steam';
 import { moveElementsToVersionIntro, removeSidebarContentAboveHotRank } from './DOM-finder/fzgamer.com';
@@ -54,6 +55,7 @@ if (!document.body) {
 	try { initModalModeService(); } catch (err) { console.error('[switch520-auto-secret] initModalModeService 失败:', err); }
 	try { initContextMenuService(); } catch (err) { console.error('[switch520-auto-secret] initContextMenuService 失败:', err); }
 	try { initQrcodeConverterService(); } catch (err) { console.error('[switch520-auto-secret] initQrcodeConverterService 失败:', err); }
+	try { initGamer520PopupBlocker(); } catch (err) { console.error('[switch520-auto-secret] initGamer520PopupBlocker 失败:', err); }
 	try { initSearchOnSelect(); } catch (err) { console.error('[switch520-auto-secret] initSearchOnSelect 失败:', err); }
 	try { initSearchInSteam(); } catch (err) { console.error('[switch520-auto-secret] initSearchInSteam 失败:', err); }
 	try { moveElementsToVersionIntro(); } catch (err) { console.error('[switch520-auto-secret] moveElementsToVersionIntro 失败:', err); }
