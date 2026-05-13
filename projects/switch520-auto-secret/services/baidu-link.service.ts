@@ -125,7 +125,7 @@ function createDirectLink(link: string, pwd: string | null, containerEl: HTMLEle
 	const _link = appendPwdToUrl(link, pwd || '');
 	
 	baiduLinkEl.innerHTML = `<a href="${_link}" target="_blank" style="text-decoration: underline">百度网盘:${_link}</a><br>`;
-	baiduLinkEl.setAttribute('target', 'blank');
+	baiduLinkEl.setAttribute('target', '_blank');
 	containerEl.parentElement?.insertBefore(baiduLinkEl, containerEl);
 }
 

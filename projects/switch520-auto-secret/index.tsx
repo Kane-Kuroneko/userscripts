@@ -46,16 +46,24 @@ if (!document.body) {
 		document.querySelectorAll('a').forEach((a) => a.target = '_blank');
 	}
 
-	// 初始化各服务
-	initAutoSecret();
-	initBaiduLinkService();
-	initDownloadBypassService();
-	initBaiduPanAutoSubmitService();
-	initModalModeService();
-	initContextMenuService();
-	initQrcodeConverterService();
-	initSearchOnSelect();
-	initSearchInSteam();
-	moveElementsToVersionIntro();
-	removeSidebarContentAboveHotRank();
+	// 初始化各服务（添加错误边界，确保单个服务失败不影响其他功能）
+	try { initAutoSecret(); } catch (err) { console.error('[switch520-auto-secret] initAutoSecret 失败:', err); }
+	try { initBaiduLinkService(); } catch (err) { console.error('[switch520-auto-secret] initBaiduLinkService 失败:', err); }
+	try { initDownloadBypassService(); } catch (err) { console.error('[switch520-auto-secret] initDownloadBypassService 失败:', err); }
+	try { initBaiduPanAutoSubmitService(); } catch (err) { console.error('[switch520-auto-secret] initBaiduPanAutoSubmitService 失败:', err); }
+	try { initModalModeService(); } catch (err) { console.error('[switch520-auto-secret] initModalModeService 失败:', err); }
+	try { initContextMenuService(); } catch (err) { console.error('[switch520-auto-secret] initContextMenuService 失败:', err); }
+	try { initQrcodeConverterService(); } catch (err) { console.error('[switch520-auto-secret] initQrcodeConverterService 失败:', err); }
+	try { initSearchOnSelect(); } catch (err) { console.error('[switch520-auto-secret] initSearchOnSelect 失败:', err); }
+	try { initSearchInSteam(); } catch (err) { console.error('[switch520-auto-secret] initSearchInSteam 失败:', err); }
+	try { moveElementsToVersionIntro(); } catch (err) { console.error('[switch520-auto-secret] moveElementsToVersionIntro 失败:', err); }
+	try { removeSidebarContentAboveHotRank(); } catch (err) { console.error('[switch520-auto-secret] removeSidebarContentAboveHotRank 失败:', err); }
+
+	// 监听来自 iframe 的防死循环 postMessage
+	window.addEventListener('message', (e) => {
+		if (e.data?.source === 'S520_LOOP_GUARD' && e.data?.type === 'OPEN_TAB') {
+			console.log('[switch520-auto-secret] postMessage 触发新标签页打开:', e.data.url);
+			window.open(e.data.url, '_blank');
+		}
+	});
 }

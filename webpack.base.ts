@@ -64,8 +64,8 @@ const conf: Configuration = {
 	] ,
 };
 
+export default conf;
+
 import webpack from 'webpack';
 import { Configuration } from 'webpack/types';
 import path from 'node:path';
-
-export default conf;

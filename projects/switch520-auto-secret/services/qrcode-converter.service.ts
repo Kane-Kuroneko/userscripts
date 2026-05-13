@@ -55,11 +55,16 @@ function initGamer520QrcodeConverter(): void {
 
 		qrcodeImages.forEach((el) => {
 			const codeEl = findExtractionCode(el);
-			const code = codeEl?.textContent.replace('提取码: ', '');
+			// 使用正则表达式精确提取4位提取码，避免提取到多余文本
+			let code: string | null = null;
+			if (codeEl?.textContent) {
+				const match = codeEl.textContent.match(/提取码[:：]\s*([a-zA-Z0-9]{4})/);
+				code = match?.[1] || null;
+			}
 			let url = decodeQRFromImageElement(el);
-
+		
 			if (!url) return;
-
+		
 			// 附加提取码（仅当 URL 不含 pwd 且有 code 时）
 			if (!url.includes('pwd=') && code) {
 				url = url.includes('?') ? `${url}&pwd=${code}` : `${url}?pwd=${code}`;
@@ -94,22 +99,31 @@ function findUnifiedWithdrawCode(): string | undefined {
  * 包含超时保护（100ms）防止死循环
  */
 function findExtractionCode(qrElement: HTMLElement): Element | null {
-	let current = qrElement.parentElement as Element;
-	let timestamp = Date.now();
+	let current = qrElement.parentElement as Element | null;
+	const startTime = Date.now();
+	const TIMEOUT_MS = 100;
+	const MAX_ITERATIONS = 50; // 额外保护：最大迭代次数
+	let iterations = 0;
 
-	while (true) {
+	while (current) {
 		// 超时保护
-		if (Date.now() - timestamp > 100) {
-			console.error('执行时间过长,可能出现死循环');
+		if (Date.now() - startTime > TIMEOUT_MS) {
+			console.warn('[qrcode-converter] 查找提取码超时，终止搜索');
 			break;
 		}
 
-		if ((current?.nextElementSibling as HTMLElement)?.innerText?.includes('提取码')) {
-			return current.nextElementSibling;
+		// 迭代次数保护
+		if (++iterations > MAX_ITERATIONS) {
+			console.warn('[qrcode-converter] 查找提取码迭代次数超限，终止搜索');
+			break;
 		}
 
-		if (!current) break;
-		current = current?.nextElementSibling;
+		const nextSibling = current.nextElementSibling;
+		if (nextSibling?.innerText?.includes('提取码')) {
+			return nextSibling;
+		}
+
+		current = current.parentElement;
 	}
 
 	return null;
@@ -124,7 +138,7 @@ function createDirectLink(url: string, extraStyle: Partial<CSSStyleDeclaration> 
 	const link = document.createElement('a');
 	link.href = url;
 	link.textContent = `${getProviderName(url)}：已为您转换为免扫码直链: ${url}`;
-	link.setAttribute('target', 'blank');
+	link.setAttribute('target', '_blank');
 
 	if (Object.keys(extraStyle).length > 0) {
 		Object.assign(link.style, extraStyle);

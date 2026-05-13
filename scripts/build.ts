@@ -32,13 +32,13 @@ then( async ( { default : partialConf } ) => {
 } );
 
 
-function runWebpack(config) {
-	return new Promise<{stats:Stats,compiler:Compiler}>((resolve, reject) => {
+function runWebpack(config: any) {
+	return new Promise<{stats: Stats, compiler: Compiler}>((resolve, reject) => {
 		const compiler = webpack(config, (err, stats) => {
-			if (err || stats.hasErrors()) {
-				reject(err || stats.toString());
+			if (err || stats?.hasErrors()) {
+				reject(err || new Error(stats?.toString()));
 			} else {
-				resolve({stats,compiler});
+				resolve({stats: stats!, compiler});
 			}
 		});
 	});

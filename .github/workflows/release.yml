@@ -101,10 +101,15 @@ jobs:
               prerelease: false
 
          - name: Trigger GreasyFork Webhook
-           if: success() && env.GREASYFORK_WEBHOOK_URL != ''
+           if: success()
            env:
               GREASYFORK_WEBHOOK_URL: ${{ secrets.GREASYFORK_WEBHOOK_URL }}
            run: |
+              if [ -z "$GREASYFORK_WEBHOOK_URL" ]; then
+                 echo "⚠️  GREASYFORK_WEBHOOK_URL secret 未配置，跳过 webhook 触发"
+                 exit 0
+              fi
+              
               echo "🚀 Triggering GreasyFork sync for ${{ steps.parse-tag.outputs.PROJECT_NAME }}..."
               curl -f -X POST \
                 -H "Content-Type: application/json" \
