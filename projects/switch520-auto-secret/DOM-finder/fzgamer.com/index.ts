@@ -89,7 +89,7 @@ export const removeSidebarContentAboveHotRank = () => {
 		const sidebar = document.querySelector('.sidebar');
 		if (!sidebar) return;
 
-		// 在侧栏内查找“近期游戏热榜”标题
+		// 在侧栏内查找"近期游戏热榜"标题
 		const titleThemeElements = sidebar.querySelectorAll('.title-theme');
 		const hotRankTitle = Array.from(titleThemeElements).find(
 			(el) => el.textContent.includes('近期游戏热榜')
@@ -117,7 +117,7 @@ export const removeSidebarContentAboveHotRank = () => {
 			el.remove();
 		});
 
-		console.log(`[fzgamer] ✅ 成功移除侧栏中“近期游戏热榜”以上的 ${elementsToRemove.length} 个元素`);
+		console.log(`[fzgamer] ✅ 成功移除侧栏中"近期游戏热榜"以上的 ${elementsToRemove.length} 个元素`);
 	});
 
 	// 开始观察 DOM 变化
@@ -138,6 +138,38 @@ export const removeSidebarContentAboveHotRank = () => {
 			}
 		}
 	}, 1500);
+};
+
+/**
+ * 移除 id 为 snakeCanvas 的 canvas 画布元素
+ */
+export const removeSnakeCanvas = () => {
+	// 使用 MutationObserver 等待 DOM 加载完成
+	const observer = new MutationObserver((mutations, obs) => {
+		// 查找 snakeCanvas 元素
+		const snakeCanvas = document.getElementById('snakeCanvas');
+		if (!snakeCanvas) return;
+
+		obs.disconnect(); // 停止观察
+
+		// 移除 canvas 元素
+		snakeCanvas.remove();
+		console.log('[fzgamer] ✅ 成功移除 id 为 snakeCanvas 的 canvas 元素');
+	});
+
+	// 开始观察 DOM 变化
+	observer.observe(document.body, {
+		childList: true,
+		subtree: true,
+	});
+
+	// 如果 DOM 已经加载完成，立即尝试执行
+	setTimeout(() => {
+		const snakeCanvas = document.getElementById('snakeCanvas');
+		if (snakeCanvas) {
+			observer.takeRecords(); // 触发一次检查
+		}
+	}, 500);
 };
 
 if (process.env.NODE_ENV === 'development') {

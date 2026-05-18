@@ -29,7 +29,7 @@ import { initQrcodeConverterService } from './services/qrcode-converter.service'
 import { initGamer520PopupBlocker } from './services/gamer520-popup-blocker.service';
 import { initSearchOnSelect } from './features/search-on-select';
 import { initSearchInSteam } from './features/search-in-steam';
-import { moveElementsToVersionIntro, removeSidebarContentAboveHotRank } from './DOM-finder/fzgamer.com';
+import { moveElementsToVersionIntro, removeSidebarContentAboveHotRank, removeSnakeCanvas } from './DOM-finder/fzgamer.com';
 import "./style.less";
 
 // 开发环境：条件加载代理检测器
@@ -60,6 +60,7 @@ if (!document.body) {
 	try { initSearchInSteam(); } catch (err) { console.error('[switch520-auto-secret] initSearchInSteam 失败:', err); }
 	try { moveElementsToVersionIntro(); } catch (err) { console.error('[switch520-auto-secret] moveElementsToVersionIntro 失败:', err); }
 	try { removeSidebarContentAboveHotRank(); } catch (err) { console.error('[switch520-auto-secret] removeSidebarContentAboveHotRank 失败:', err); }
+	try { removeSnakeCanvas(); } catch (err) { console.error('[switch520-auto-secret] removeSnakeCanvas 失败:', err); }
 
 	// 监听来自 iframe 的防死循环 postMessage
 	window.addEventListener('message', (e) => {

@@ -1,5 +1,10 @@
 <h1>📝 更新日志</h1>
 
+<h2>🎉 7.0.16 版本更新</h2>
+<ul>
+    <li>新增 fzgamer.com 站点功能：自动移除 id 为 snakeCanvas 的 canvas 画布元素</li>
+</ul>
+
 <h2>🎉 7.0.15 版本更新</h2>
 <ul>
     <li>修复了gamer520下载页可能会无限原地跳转的问题，如遇无限跳转则会从新标签页打开(由站长的wordpress配置和iframe cookie的限制共同导致)</li>
