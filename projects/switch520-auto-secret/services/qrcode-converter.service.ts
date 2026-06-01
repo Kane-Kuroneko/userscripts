@@ -44,30 +44,32 @@ function initAcgQrcodeConverter(): void {
 }
 
 /**
- * gamers520.com 站点处理
- * 将 img.wpkqcg_qrcode 解析为直链
+ * gamer520/gamers520 站点处理
+ * 将 img.wpkqcg_qrcode 解析为直链（文章页 + 下载页）
  */
 function initGamer520QrcodeConverter(): void {
 	useMatchDomain({
-		includes: ['gamers520.com']
+		includes: ['gamer520.com', 'gamers520.com']
 	}, () => {
 		const qrcodeImages = Array.from(document.querySelectorAll('img.wpkqcg_qrcode')) as HTMLImageElement[];
 
 		qrcodeImages.forEach((el) => {
-			const codeEl = findExtractionCode(el);
-			// 使用正则表达式精确提取4位提取码，避免提取到多余文本
-			let code: string | null = null;
-			if (codeEl?.textContent) {
-				const match = codeEl.textContent.match(/提取码[:：]\s*([a-zA-Z0-9]{4})/);
-				code = match?.[1] || null;
-			}
-			let url = decodeQRFromImageElement(el);
-		
+			// 优先从隐藏 input 提取 URL（文章页内嵌完整链接，更可靠）
+			let url = extractUrlFromHiddenInput(el) || decodeQRFromImageElement(el);
+
 			if (!url) return;
-		
-			// 附加提取码（仅当 URL 不含 pwd 且有 code 时）
-			if (!url.includes('pwd=') && code) {
-				url = url.includes('?') ? `${url}&pwd=${code}` : `${url}?pwd=${code}`;
+
+			// 尝试提取提取码并附加（仅当 URL 不含 pwd 时）
+			if (!url.includes('pwd=')) {
+				const codeEl = findExtractionCode(el);
+				let code: string | null = null;
+				if (codeEl?.textContent) {
+					const match = codeEl.textContent.match(/提取码[:：]\s*([a-zA-Z0-9]{4})/);
+					code = match?.[1] || null;
+				}
+				if (code) {
+					url = url.includes('?') ? `${url}&pwd=${code}` : `${url}?pwd=${code}`;
+				}
 			}
 
 			const link = createDirectLink(url, {
@@ -79,6 +81,26 @@ function initGamer520QrcodeConverter(): void {
 			insertAfter(link, el);
 		});
 	});
+}
+
+/**
+ * 从二维码图片邻近的隐藏 input 中提取 URL
+ * 文章页结构：wpkqcg_qrcode_wrapper 内含 input[id$="_content"] 直接存储完整链接
+ */
+function extractUrlFromHiddenInput(img: HTMLImageElement): string | null {
+	const wrapper = img.closest('.wpkqcg_qrcode_wrapper');
+	if (!wrapper) return null;
+
+	const contentInput = wrapper.querySelector('input[id$="_content"]') as HTMLInputElement | null;
+	if (!contentInput?.value) return null;
+
+	// 确保值是有效 URL
+	const value = contentInput.value.trim();
+	if (value.startsWith('http://') || value.startsWith('https://')) {
+		return value;
+	}
+
+	return null;
 }
 
 /**
@@ -118,7 +140,7 @@ function findExtractionCode(qrElement: HTMLElement): Element | null {
 			break;
 		}
 
-		const nextSibling = current.nextElementSibling;
+		const nextSibling = current.nextElementSibling as HTMLElement;
 		if (nextSibling?.innerText?.includes('提取码')) {
 			return nextSibling;
 		}
