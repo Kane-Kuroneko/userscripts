@@ -28,6 +28,10 @@ function initGamer520BaiduLink(): void {
 	useMatchDomain({ includes: ['gamer520.com', 'gamers520.com'] }, () => {
 		if (!location.href.endsWith('.html')) return;
 
+		// 新版 .bdp-container 卡片式布局由 qrcode-converter.service 处理，
+		// 此处仅处理旧版纯文本链接格式，避免误删提取码 DOM
+		if (document.querySelector('.bdp-container')) return;
+
 		const containerEl = recursiveFindContainer(linkReg, document.body, ['友情链接：', '限时特惠']);
 		if (!containerEl) return;
 

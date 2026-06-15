@@ -46,9 +46,27 @@ export function isQuarkPanUrl(url: string): boolean {
 }
 
 /**
+ * 判断是否为迅雷云盘链接
+ * @param url 待检测的 URL
+ * @returns 是否为迅雷云盘链接
+ */
+export function isXunleiPanUrl(url: string): boolean {
+	return typeof url === 'string' && url.includes('pan.xunlei.com');
+}
+
+/**
+ * 判断是否为 GOFILE 海外盘链接
+ * @param url 待检测的 URL
+ * @returns 是否为 GOFILE 链接
+ */
+export function isGofileUrl(url: string): boolean {
+	return typeof url === 'string' && url.includes('gofile.io');
+}
+
+/**
  * 根据 URL 获取网盘提供商名称
  * @param url 网盘链接
- * @returns 提供商名称（百度网盘/阿里云盘/夸克网盘）或空字符串
+ * @returns 提供商名称或空字符串
  */
 export function getProviderName(url: string): string {
 	if (!url || typeof url !== 'string') return '';
@@ -56,7 +74,9 @@ export function getProviderName(url: string): string {
 	if (isBaiduPanUrl(url)) return '百度网盘';
 	if (isAliyunPanUrl(url)) return '阿里云盘';
 	if (isQuarkPanUrl(url)) return '夸克网盘';
-	
+	if (isXunleiPanUrl(url)) return '迅雷云盘';
+	if (isGofileUrl(url)) return 'GOFILE';
+
 	return '';
 }
 

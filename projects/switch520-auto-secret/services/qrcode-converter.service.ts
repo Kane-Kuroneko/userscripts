@@ -1,6 +1,10 @@
 /**
  * 二维码转链接服务
- * 将页面中的二维码 canvas/image 解析为直链，免去扫码步骤
+ * 将页面中二维码 canvas/image 解析为直链，免去扫码步骤
+ *
+ * 兼容新旧两种 gamer520 下载页 DOM 结构：
+ *   新版 .bdp-container 卡片式布局（百度/夸克/迅雷）
+ *   旧版 wpkqcg_qrcode 格式
  */
 
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
@@ -8,6 +12,19 @@ import { decodeQrFromCanvas, decodeQRFromImageElement } from '../QrcodeToLink';
 import { extractUnifiedCode } from '../core/password-extractor';
 import { getProviderName } from '../utils/url-helper';
 import { insertAfter } from '../utils/dom-helper';
+
+/**
+ * 从 URL 中提取 pwd 参数值
+ * 回退方案，用于 DOM 中无提取码元素（如迅雷云盘的隐藏提取码）时附加 pwd 到 URL
+ */
+function extractPwdFromUrl(url: string): string | null {
+	try {
+		const pwd = new URL(url).searchParams.get('pwd');
+		return pwd || null;
+	} catch {
+		return url.match(/[?&]pwd=([^&#]+)/)?.[1] || null;
+	}
+}
 
 /**
  * 初始化二维码转链接服务
@@ -45,41 +62,148 @@ function initAcgQrcodeConverter(): void {
 
 /**
  * gamer520/gamers520 站点处理
- * 将 img.wpkqcg_qrcode 解析为直链（文章页 + 下载页）
+ * 兼容新旧两种格式：
+ *   新版 .bdp-container 卡片式布局（百度/夸克/迅雷）
+ *   旧版 img.wpkqcg_qrcode 格式
  */
 function initGamer520QrcodeConverter(): void {
 	useMatchDomain({
 		includes: ['gamer520.com', 'gamers520.com']
 	}, () => {
-		const qrcodeImages = Array.from(document.querySelectorAll('img.wpkqcg_qrcode')) as HTMLImageElement[];
+		// 新版 .bdp-container 卡片式布局
+		convertBdpCardsToLinks();
+		// 旧版 wpkqcg_qrcode 格式（兼容留存文章页）
+		convertWpkqcgQrcodesToLinks();
+	});
+}
 
-		qrcodeImages.forEach((el) => {
-			// 优先从隐藏 input 提取 URL（文章页内嵌完整链接，更可靠）
-			let url = extractUrlFromHiddenInput(el) || decodeQRFromImageElement(el);
+/**
+ * 处理新版 .bdp-container 卡片式下载布局
+ * 百度/夸克：从 api.qrserver.com 的 data 参数提取直链 URL
+ * 迅雷：直接使用 .bdp-btn 的 href
+ * 直链插入到原提取码框 ( .bdp-pwd-box ) 下方，保留原 DOM 不动
+ */
+function convertBdpCardsToLinks(): void {
+	const cards = document.querySelectorAll('.bdp-container .bdp-grid .bdp-card');
+	if (!cards.length) return;
 
-			if (!url) return;
+	cards.forEach((card) => {
+		let url: string | null = null;
+		let code: string | null = null;
 
-			// 尝试提取提取码并附加（仅当 URL 不含 pwd 时）
-			if (!url.includes('pwd=')) {
-				const codeEl = findExtractionCode(el);
-				let code: string | null = null;
-				if (codeEl?.textContent) {
-					const match = codeEl.textContent.match(/提取码[:：]\s*([a-zA-Z0-9]{4})/);
-					code = match?.[1] || null;
-				}
-				if (code) {
-					url = url.includes('?') ? `${url}&pwd=${code}` : `${url}?pwd=${code}`;
-				}
+		// 提取提取码
+		const pwdBox = card.querySelector('.bdp-pwd-box');
+		if (pwdBox) {
+			const strong = pwdBox.querySelector('strong');
+			if (strong?.textContent) {
+				code = strong.textContent.trim();
 			}
+		}
 
-			const link = createDirectLink(url, {
-				marginTop: '20px',
-				display: 'block',
-				color: 'palegreen',
-			});
+		// 方式1：从 api.qrserver.com 二维码图片 src 的 data 参数提取 URL
+		const qrImg = card.querySelector('.bdp-qrcode-box img') as HTMLImageElement | null;
+		if (qrImg) {
+			url = extractUrlFromQrserverSrc(qrImg.src);
+		}
 
-			insertAfter(link, el);
+		// 方式2：从直链按钮提取 URL（迅雷等）
+		if (!url) {
+			const directBtn = card.querySelector('.bdp-btn[href]') as HTMLAnchorElement | null;
+			if (directBtn) {
+				url = directBtn.href;
+			}
+		}
+
+		if (!url) return;
+
+		// 提取码回退：若 DOM 中未找到，尝试从 URL 参数中提取（迅雷场景）
+		if (!code) {
+			code = extractPwdFromUrl(url);
+		}
+
+		// 附加提取码（仅当 URL 中不含 pwd= 时——百度链接通常已内含）
+		if (code && !url.includes('pwd=')) {
+			url = url.includes('?') ? `${url}&pwd=${code}` : `${url}?pwd=${code}`;
+		}
+
+		const link = createDirectLink(url, {
+			marginTop: '12px',
+			display: 'block',
+			color: 'palegreen',
+			width: '100%',
+			textAlign: 'center',
+			wordBreak: 'break-all',
 		});
+
+		// 插入到提取码框下方，保留原提取码 DOM 供扫码者查阅
+		const insertTarget = card.querySelector('.bdp-pwd-box') || card.querySelector('.bdp-qrcode-box') || card.querySelector('.bdp-btn');
+		if (insertTarget) {
+			insertAfter(link, insertTarget as HTMLElement);
+		}
+	});
+}
+
+/**
+ * 从 api.qrserver.com 图片 URL 中提取目标链接
+ * 示例 src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https%3A%2F%2Fpan.baidu.com%2Fs%2F..."
+ * 解析 data 参数即可获得真实下载 URL，无需实际解码 QR 码
+ */
+function extractUrlFromQrserverSrc(src: string): string | null {
+	if (!src || !src.includes('qrserver')) return null;
+	try {
+		const urlObj = new URL(src);
+		const data = urlObj.searchParams.get('data');
+		if (data && (data.startsWith('http://') || data.startsWith('https://'))) {
+			return data;
+		}
+	} catch {
+		// URL 构造失败时的降级正则提取
+		const match = src.match(/[?&]data=([^&]+)/);
+		if (match) {
+			const decoded = decodeURIComponent(match[1]);
+			if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
+				return decoded;
+			}
+		}
+	}
+	return null;
+}
+
+/**
+ * 旧版 wpkqcg_qrcode 处理（兼容留存文章页）
+ * 从二维码图片邻近的隐藏 input 中提取 URL
+ */
+function convertWpkqcgQrcodesToLinks(): void {
+	const qrcodeImages = Array.from(document.querySelectorAll('img.wpkqcg_qrcode')) as HTMLImageElement[];
+
+	qrcodeImages.forEach((el) => {
+		// 优先从隐藏 input 提取 URL（文章页内嵌完整链接，更可靠）
+		let url = extractUrlFromHiddenInput(el) || decodeQRFromImageElement(el);
+
+		if (!url) return;
+
+		// 尝试提取提取码并附加（仅当 URL 不含 pwd 时）
+		let code: string | null = null;
+		if (!url.includes('pwd=')) {
+			const codeEl = findExtractionCode(el);
+			if (codeEl?.textContent) {
+				const match = codeEl.textContent.match(/提取码[:：]\s*([a-zA-Z0-9]{4})/);
+				code = match?.[1] || null;
+			}
+			if (code) {
+				url = url.includes('?') ? `${url}&pwd=${code}` : `${url}?pwd=${code}`;
+			}
+		} else {
+			code = extractPwdFromUrl(url);
+		}
+
+		const link = createDirectLink(url, {
+			marginTop: '20px',
+			display: 'block',
+			color: 'palegreen',
+		});
+
+		insertAfter(link, el);
 	});
 }
 
@@ -152,8 +276,8 @@ function findExtractionCode(qrElement: HTMLElement): Element | null {
 }
 
 /**
- * 创建直链 <a> 元素
- * @param url 最终 URL
+ * 创建直链 &lt;a&gt; 元素
+ * @param url  最终 URL
  * @param extraStyle 额外样式
  */
 function createDirectLink(url: string, extraStyle: Partial<CSSStyleDeclaration> = {}): HTMLAnchorElement {
@@ -161,6 +285,7 @@ function createDirectLink(url: string, extraStyle: Partial<CSSStyleDeclaration> 
 	link.href = url;
 	link.textContent = `${getProviderName(url)}：已为您转换为免扫码直链: ${url}`;
 	link.setAttribute('target', '_blank');
+	link.title = url;
 
 	if (Object.keys(extraStyle).length > 0) {
 		Object.assign(link.style, extraStyle);
