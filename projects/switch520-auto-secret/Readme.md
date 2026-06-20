@@ -3,6 +3,18 @@
 </p>
 <h1>📝 更新日志</h1>
 
+<h2>🐛 7.2.1 版本更新</h2>
+<ul>
+    <li>修正 7.2.0 发布文档错误：恢复 7.1.0 补丁独立条目，新增发布检查清单防止再犯</li>
+</ul>
+
+<h2>🎉 7.2.0 版本更新</h2>
+<ul>
+    <li>适配 acgxj su-download 新版 DOM（button[data-qr-url] base64 直链）</li>
+    <li>修复 steamzg.com 等页面因 ResizeObserver 循环触发 webpack HMR overlay 红色错误遮罩的问题</li>
+    <li>三层防御：capture-phase 拦截 + window.addEventListener 劫持 + CSS overlay 隐藏，适配 Tampermonkey Proxy 沙箱</li>
+</ul>
+
 <h2>🎉 7.1.0 版本更新</h2>
 <ul>
     <li>适配 gamer520 新版下载页 .bdp-container 卡片式布局，百度/夸克/迅雷/GOFILE 二维码自动转直链</li>
@@ -13,14 +25,6 @@
 <h2>✨ 7.0.17 版本更新</h2>
 <ul>
     <li>新增 gamer520.com 文章页二维码转直链功能（已有功能仅在下载页生效，现扩展至文章页）</li>
-</ul>
-
-<hr>
-<h2>🎉 7.2.0 版本更新</h2>
-<ul>
-    <li>适配 acgxj su-download 新版 DOM（button[data-qr-url] base64 直链）</li>
-    <li>修复 steamzg.com 等页面因 ResizeObserver 循环触发 webpack HMR overlay 红色错误遮罩的问题</li>
-    <li>三层防御：capture-phase 拦截 + window.addEventListener 劫持 + CSS overlay 隐藏，适配 Tampermonkey Proxy 沙箱</li>
 </ul>
 
 <h3>🚀 7.x 主要功能更新</h3>
