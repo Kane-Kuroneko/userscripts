@@ -36,12 +36,15 @@ export function initQrcodeConverterService(): void {
 
 /**
  * acgxj/acfb/xj.steamzg 站点处理
- * 将 canvas.su-qr-canvas 解析为直链
+ * 兼容新旧两种 DOM 结构：
+ *   新版 button.su-download-btn[data-qr-url]（base64 直链）
+ *   旧版 canvas.su-qr-canvas（QR 解码）
  */
 function initAcgQrcodeConverter(): void {
 	useMatchDomain({
 		includes: ['acgxj.com', 'acfb.top', 'xj.steamzg.com']
 	}, () => {
+		// 旧版 canvas.su-qr-canvas 逻辑（向后兼容）
 		const qrCodeCanvasEls = Array.from(document.querySelectorAll('canvas.su-qr-canvas')) as HTMLCanvasElement[];
 		const withdrawCode = findUnifiedWithdrawCode();
 
@@ -57,6 +60,74 @@ function initAcgQrcodeConverter(): void {
 			const link = createDirectLink(url);
 			insertAfter(link, canvas);
 		});
+
+		// 新版 su-download 结构（button[data-qr-url] + base64）
+		convertSuDownloadToLinks();
+	});
+}
+
+/**
+ * 处理 acgxj/acfb/xj.steamzg 新版 DOM 结构
+ * 站长改为 hover .su-download-item 才展示子元素，
+ * 直链 URL 以 base64 编码存储在 button.su-download-btn 的 data-qr-url 属性中
+ */
+function convertSuDownloadToLinks(): void {
+	const btns = document.querySelectorAll('button.su-download-btn[data-qr-url]');
+	if (!btns.length) return;
+
+	const unifiedCode = findUnifiedWithdrawCode();
+	console.log('[qrcode-converter] 检测到 su-download-btn %d 个', btns.length);
+
+	btns.forEach((btn) => {
+		try {
+			const rawBase64 = btn.getAttribute('data-qr-url');
+			if (!rawBase64) {
+				console.warn('[qrcode-converter] su-download-btn 缺少 data-qr-url，跳过');
+				return;
+			}
+
+			let decodedUrl: string;
+			try {
+				decodedUrl = atob(rawBase64);
+			} catch (decodeErr) {
+				console.warn('[qrcode-converter] atob 解码失败:', rawBase64.substring(0, 30) + '...', decodeErr);
+				return;
+			}
+
+			if (!decodedUrl || (!decodedUrl.startsWith('http://') && !decodedUrl.startsWith('https://'))) {
+				console.warn('[qrcode-converter] 解码结果非有效 URL:', decodedUrl);
+				return;
+			}
+
+			// 提取独立提取码
+			let code = btn.getAttribute('data-code')?.trim() || '';
+
+			// 回退到统一提取码
+			if (!code && unifiedCode) {
+				code = unifiedCode;
+			}
+
+			// 拼接 pwd 参数（URL 中已含 pwd= 则跳过）
+			if (code && !decodedUrl.includes('pwd=')) {
+				decodedUrl = decodedUrl.includes('?')
+					? `${decodedUrl}&pwd=${code}`
+					: `${decodedUrl}?pwd=${code}`;
+			}
+
+			const provider = getProviderName(decodedUrl) || '网盘';
+			console.log('[qrcode-converter] 处理下载项: %s, code=%s', provider, code || '(无)');
+
+			const suDownloadItem = btn.closest('.su-download-item');
+			if (!suDownloadItem) {
+				console.warn('[qrcode-converter] 找不到父级 .su-download-item，跳过');
+				return;
+			}
+
+			const link = createDirectLink(decodedUrl);
+			insertAfter(link, suDownloadItem);
+		} catch (err) {
+			console.warn('[qrcode-converter] su-download 处理失败:', err);
+		}
 	});
 }
 
