@@ -3,22 +3,11 @@
 </p>
 <h1>📝 更新日志</h1>
 
-<h2>📝 7.2.2 版本更新</h2>
-<ul>
-    <li>重写更新日志，聚焦用户可见的功能变化，移除内部实现细节</li>
-</ul>
-
-<h2>📝 7.2.1 版本更新</h2>
-<ul>
-    <li>改进更新日志排版，增强可读性</li>
-</ul>
-
-<h2>🎉 7.2.0 版本更新</h2>
+<h2>📝 7.2.3 版本更新</h2>
 <ul>
     <li>适配 acgxj.com 新版下载按钮，二维码转直链功能恢复正常</li>
     <li>修复 steamzg.com 等页面偶现红色错误遮罩遮挡内容的问题</li>
 </ul>
-
 <h2>🎉 7.1.0 版本更新</h2>
 <ul>
     <li>适配 gamer520 新版下载页 .bdp-container 卡片式布局，百度/夸克/迅雷/GOFILE 二维码自动转直链</li>
@@ -26,10 +15,11 @@
     <li>修复新版下载页布局下提取码 DOM 被旧逻辑误删的问题，扫码用户可正常查看提取码</li>
 </ul>
 
-<h2>✨ 7.0.17 版本更新</h2>
-<ul>
-    <li>新增 gamer520.com 文章页二维码转直链功能（已有功能仅在下载页生效，现扩展至文章页）</li>
-</ul>
+<h3>📸 效果展示</h3>
+<img width="400px" src="https://pic3.zhimg.com/100/v2-17bb71a1583dd314984dde3d55c98dd4_r.jpg" alt="预览图1">
+<img width="400px" src="https://pic2.zhimg.com/100/v2-8b3c026dabeb2019eb79d764fbb57841_r.jpg" alt="预览图2">
+<img width="400px" src="https://picx.zhimg.com/100/v2-c58a5a77b2a55a976627aaa817bd92e9_r.jpg" alt="预览图3">
+<img width="400px" src="https://pic2.zhimg.com/100/v2-3ff7f0abb431bb2bf26c6e591e18e033_r.jpg" alt="预览图4">
 
 <h3>🚀 7.x 主要功能更新</h3>
 
@@ -98,9 +88,5 @@
 
 <blockquote>💖 喜欢这个脚本？欢迎 Star / 收藏 / 反馈建议！</blockquote>
 
-<h3>📸 效果展示</h3>
-<img width="400px" src="https://pic3.zhimg.com/100/v2-17bb71a1583dd314984dde3d55c98dd4_r.jpg" alt="预览图1">
-<img width="400px" src="https://pic2.zhimg.com/100/v2-8b3c026dabeb2019eb79d764fbb57841_r.jpg" alt="预览图2">
-<img width="400px" src="https://picx.zhimg.com/100/v2-c58a5a77b2a55a976627aaa817bd92e9_r.jpg" alt="预览图3">
-<img width="400px" src="https://pic2.zhimg.com/100/v2-3ff7f0abb431bb2bf26c6e591e18e033_r.jpg" alt="预览图4">
+
 
