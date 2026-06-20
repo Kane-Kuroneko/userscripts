@@ -1,29 +1,26 @@
 <h1>📝 更新日志</h1>
 
-<h2>🐛 7.2.1 版本更新</h2>
+<h2>📝 7.2.2 版本更新</h2>
 <ul>
-    <li>修正 7.2.0 发布文档错误：恢复被误删的 7.1.0 补丁条目，7.2.0 仅保留 acgxj su-download 适配</li>
-    <li>修正 Readme.md 中 7.2.0 放在错误文档区域的问题</li>
-    <li>新增 docs/release-checklist.md 发布检查清单，防止文档结构错误再发</li>
+    <li>重写更新日志，聚焦用户可见的功能变化，移除内部实现细节</li>
+</ul>
+
+<h2>📝 7.2.1 版本更新</h2>
+<ul>
+    <li>改进更新日志排版，增强可读性</li>
 </ul>
 
 <h2>🎉 7.2.0 版本更新</h2>
 <ul>
-    <li>适配 acgxj su-download 新版 DOM（button[data-qr-url] base64 直链）</li>
+    <li>适配 acgxj.com 新版下载按钮，二维码转直链功能恢复正常</li>
+    <li>修复 steamzg.com 等页面偶现红色错误遮罩遮挡内容的问题</li>
 </ul>
 
 <h2>🎉 7.1.0 版本更新</h2>
 <ul>
-    <li>适配 gamer520 新版下载页 .bdp-container 卡片式布局，百度/夸克/迅雷/GOFILE 二维码自动转直链</li>
+    <li>适配 gamer520 新版下载页布局，百度/夸克/迅雷/GOFILE 二维码自动转直链</li>
     <li>新增 GOFILE 海外盘、迅雷云盘网盘名称识别，直链标签不再显示空白</li>
-    <li>修复新版下载页布局下提取码 DOM 被旧逻辑误删的问题，扫码用户可正常查看提取码</li>
-</ul>
-
-
-<h2>🐛 7.1.0 补丁 — ResizeObserver 循环错误修复</h2>
-<ul>
-    <li>修复 steamzg.com 等页面因 ResizeObserver 循环触发 webpack HMR overlay 红色错误遮罩的问题</li>
-    <li>三层防御：capture-phase 拦截 + window.addEventListener 劫持 + CSS overlay 隐藏，适配 Tampermonkey Proxy 沙箱</li>
+    <li>修复新版下载页布局下提取码被误删的问题，扫码用户可正常查看提取码</li>
 </ul>
 
 <h2>✨ 7.0.17 版本更新</h2>
@@ -81,4 +78,3 @@
     <li>🔗 链接拼接逻辑深度优化 - 修复多处 Bug，各类网盘地址处理更稳定</li>
     <li>⚙️ 功能调整 - 因 steamzg 站长修改规则，已移除对该站点的弹窗浏览支持</li>
 </ul>
-

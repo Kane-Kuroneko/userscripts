@@ -30,7 +30,7 @@ const conf: Configuration = {
 				name : 'switch520-auto-secret' ,
 				// 优先使用环境变量 SCRIPT_VERSION（CI/CD 或 release.sh 传入）
 				// 否则使用默认版本号（本地开发时可用）
-				version : process.env.SCRIPT_VERSION || '7.2.1' ,
+version : process.env.SCRIPT_VERSION || '7.2.2' ,
 				author : 'Kane' ,
 				description : '优化多个游戏下载站:二维码转链接|弹窗浏览|自动填写密码|下载按钮直达下载地址页|去Steam查看游戏。包括switch520、switch618、acgxj、fzgamer、steamzg等' ,
 				namespace : 'http://tampermonkey.net/' ,
