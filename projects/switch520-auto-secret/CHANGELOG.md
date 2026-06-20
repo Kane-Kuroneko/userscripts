@@ -1,16 +1,17 @@
 <h1>📝 更新日志</h1>
 
+<h2>🎉 7.2.0 版本更新</h2>
+<ul>
+    <li>适配 acgxj su-download 新版 DOM（button[data-qr-url] base64 直链）</li>
+    <li>修复 steamzg.com 等页面因 ResizeObserver 循环触发 webpack HMR overlay 红色错误遮罩的问题</li>
+    <li>三层防御：capture-phase 拦截 + window.addEventListener 劫持 + CSS overlay 隐藏，适配 Tampermonkey Proxy 沙箱</li>
+</ul>
+
 <h2>🎉 7.1.0 版本更新</h2>
 <ul>
     <li>适配 gamer520 新版下载页 .bdp-container 卡片式布局，百度/夸克/迅雷/GOFILE 二维码自动转直链</li>
     <li>新增 GOFILE 海外盘、迅雷云盘网盘名称识别，直链标签不再显示空白</li>
     <li>修复新版下载页布局下提取码 DOM 被旧逻辑误删的问题，扫码用户可正常查看提取码</li>
-</ul>
-
-<h2>🐛 7.1.0 补丁 — ResizeObserver 循环错误修复</h2>
-<ul>
-    <li>修复 steamzg.com 等页面因 ResizeObserver 循环触发 webpack HMR overlay 红色错误遮罩的问题</li>
-    <li>三层防御：capture-phase 拦截 + window.addEventListener 劫持 + CSS overlay 隐藏，适配 Tampermonkey Proxy 沙箱</li>
 </ul>
 
 <h2>✨ 7.0.17 版本更新</h2>

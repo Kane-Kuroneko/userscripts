@@ -16,6 +16,13 @@
 </ul>
 
 <hr>
+<h2>🎉 7.2.0 版本更新</h2>
+<ul>
+    <li>适配 acgxj su-download 新版 DOM（button[data-qr-url] base64 直链）</li>
+    <li>修复 steamzg.com 等页面因 ResizeObserver 循环触发 webpack HMR overlay 红色错误遮罩的问题</li>
+    <li>三层防御：capture-phase 拦截 + window.addEventListener 劫持 + CSS overlay 隐藏，适配 Tampermonkey Proxy 沙箱</li>
+</ul>
+
 <h3>🚀 7.x 主要功能更新</h3>
 
 <h4>✨ 新增 fzgamer.com 站点支持</h4>
