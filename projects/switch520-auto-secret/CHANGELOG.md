@@ -7,6 +7,12 @@
     <li>修复新版下载页布局下提取码 DOM 被旧逻辑误删的问题，扫码用户可正常查看提取码</li>
 </ul>
 
+<h2>🐛 7.1.0 补丁 — ResizeObserver 循环错误修复</h2>
+<ul>
+    <li>修复 steamzg.com 等页面因 ResizeObserver 循环触发 webpack HMR overlay 红色错误遮罩的问题</li>
+    <li>三层防御：capture-phase 拦截 + window.addEventListener 劫持 + CSS overlay 隐藏，适配 Tampermonkey Proxy 沙箱</li>
+</ul>
+
 <h2>✨ 7.0.17 版本更新</h2>
 <ul>
     <li>新增 gamer520.com 文章页二维码转直链功能（已有功能仅在下载页生效，现扩展至文章页）</li>

@@ -18,6 +18,17 @@
 
 'use strict';
 
+// 抑制 webpack 运行时错误 overlay 误捕浏览器内部 ResizeObserver 循环错误
+// 该错误本质无害（Chrome 内部限制），但被 webpack HMR 的 window.addEventListener("error") 捕获后
+// 会尝试渲染 DOM overlay，进而触发更多 ResizeObserver 通知，造成级联死循环
+// capture-phase 在 at-target phase 之前触发，可通过 stopPropagation 阻止传播
+window.addEventListener('error', (event) => {
+	if (event.message?.includes('ResizeObserver loop completed with undelivered notifications')) {
+		console.log('[switch520-auto-secret] 抑制 ResizeObserver 循环错误');
+		event.stopPropagation();
+	}
+}, true);
+
 // 导入服务层
 import { initAutoSecret } from './services/auto-secret.service';
 import { initBaiduLinkService } from './services/baidu-link.service';

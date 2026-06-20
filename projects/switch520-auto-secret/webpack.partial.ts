@@ -16,6 +16,15 @@ const conf: Configuration = {
 	} ,
 	plugins : [
 		
+		// 抑制 webpack HMR overlay 误捕浏览器内部 ResizeObserver 循环错误
+		// Tampermonkey 沙箱下 EventTarget.prototype 修改可能无效（沙箱 Proxy 可能缓存了原始方法引用），
+		// 改用直接劫持 sandbox 上下文中的 window.addEventListener，确保 webpack bootstrap 调用时命中补丁
+		// 同时通过 CSS 隐藏 overlay DOM 作兜底，阻断级联
+		// 注意：BannerPlugin 是 raw:true，代码会插入到 chunk 最顶端（UserScript metadata 之后）
+		new webpack.BannerPlugin({
+			banner: '/* suppress ResizeObserver loop errors - layer 1: intercept window.addEventListener */\n{const __a=window.addEventListener;window.addEventListener=function(t,l,o){if(t==="error"){const w=function(e){if(e instanceof ErrorEvent&&typeof e.message==="string"&&e.message.indexOf("ResizeObserver loop completed")!==-1){return}return l.call(this,e)};return __a.call(this,t,w,o)}return __a.call(this,t,l,o)}}\n/* suppress ResizeObserver loop errors - layer 2: hide overlay DOM */\n{var __s=document.createElement("style");__s.textContent="#webpack-dev-server-client-overlay{display:none!important}";document.documentElement.appendChild(__s)}\n',
+			raw: true,
+		}),
 		new UserscriptPlugin({
 			headers : {
 				name : 'switch520-auto-secret' ,
@@ -76,6 +85,7 @@ const conf: Configuration = {
 };
 
 
+import webpack from 'webpack';
 import { UserscriptPlugin } from 'webpack-userscript';
 import { Configuration } from 'webpack';
 import path from 'node:path';
