@@ -9,6 +9,7 @@ import { reaxper } from 'reaxes-react';
 import { obsReaction, createReaxable } from 'reaxes';
 import { createRoot } from 'react-dom/client';
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
+import { buildSteamSearchUrl } from '../../utils/steam-search';
 import "./style.module.less";
 
 const notificationKey = 'search-on-steam';
@@ -39,7 +40,7 @@ const App = reaxper(() => {
 				style={{ color: 'black', fontSize: '18px', display: "inline-block" }}
 				onClick={(e) => {
 					e.preventDefault();
-					window.open(`https://store.steampowered.com/search/?l=schinese&term=${encodeURIComponent(selection.trim()).replace(/%20/g, '+')}`);
+					window.open(buildSteamSearchUrl(selection));
 				}}
 			>
 				Steam搜索：

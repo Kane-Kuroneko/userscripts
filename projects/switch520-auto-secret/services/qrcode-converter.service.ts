@@ -286,6 +286,10 @@ function convertWpkqcgQrcodesToLinks(): void {
 /**
  * fzgamer.com：资源下载区点击后弹出 #fzg-qr-mask 扫码弹窗
  * 优先 hook window.fzgOpenQr 拿到 base64 直链；失败时再解码弹窗内 QR
+ *
+ * 注意：
+ * - 不可在匹配失败时回退 __fzg_d[0]，否则非百度项也会被错指到百度
+ * - qrcodejs 会把 URL 写到 #fzg-qr-canvas[title]，切换网盘时旧 title 会短暂残留
  */
 function initFzgamerQrcodeConverter(): void {
 	useMatchDomain({
@@ -303,6 +307,22 @@ type FzgOpenQrFn = (
 	scanTip?: string,
 	panType?: string
 ) => void;
+
+/** 弹窗标题 / panType → __fzg_d.type 别名（兼容中英文 UI） */
+const FZG_PAN_TYPE_ALIASES: Record<string, string[]> = {
+	baidu: ['baidu', '百度'],
+	quark: ['quark', '夸克'],
+	xunlei: ['xunlei', 'thunder', '迅雷'],
+	alipan: ['alipan', 'aliyun', '阿里'],
+	lanzou: ['lanzou', '蓝奏'],
+	weiyun: ['weiyun', '微云'],
+	'123pan': ['123pan', '123'],
+	onedrive: ['onedrive'],
+	buy: ['buy', 'steam', 'genuine', '正版', '购买', 'purchase'],
+};
+
+/** hook 最近一次解析出的直链，供 observer 兜底时优先使用，避免读到残留 title */
+let lastFzgOpenedUrl: string | null = null;
 
 /**
  * Hook 站点的 fzgOpenQr：参数即为 base64 编码的真实下载链接
@@ -323,9 +343,14 @@ function hookFzgOpenQr(): void {
 			scanTip?: string,
 			panType?: string
 		) {
+			// 清除上一份二维码残留的 title，避免兜底解析读到旧链接
+			document.getElementById('fzg-qr-canvas')?.removeAttribute('title');
+			lastFzgOpenedUrl = decodeFzgBase64Url(encodedUrl);
+
 			original.call(this, encodedUrl, title, hint, scanTip, panType);
-			const url = decodeFzgBase64Url(encodedUrl);
-			if (url) {
+
+			if (lastFzgOpenedUrl) {
+				const url = lastFzgOpenedUrl;
 				// 站点异步生成二维码，稍后再注入，避免被 innerHTML 清空
 				setTimeout(() => enhanceFzgQrModal(url), 80);
 			}
@@ -354,14 +379,17 @@ function observeFzgQrMask(): void {
 	const handleMaskShown = () => {
 		const mask = document.getElementById('fzg-qr-mask');
 		if (!mask?.classList.contains('show')) return;
-		if (document.getElementById(FZG_DIRECT_LINK_ID)) return;
 
-		// 等待二维码渲染完成再解码
+		// 已有直链且与最近一次打开一致则跳过；否则允许覆盖错误链接
+		const existingLink = document.getElementById(FZG_DIRECT_LINK_ID) as HTMLAnchorElement | null;
+		if (existingLink && lastFzgOpenedUrl && existingLink.href === lastFzgOpenedUrl) {
+			return;
+		}
+
 		window.setTimeout(() => {
-			if (document.getElementById(FZG_DIRECT_LINK_ID)) return;
-			const url = resolveFzgQrUrlFromDom();
+			const url = lastFzgOpenedUrl || resolveFzgQrUrlFromDom();
 			if (url) enhanceFzgQrModal(url);
-		}, 120);
+		}, 150);
 	};
 
 	const existing = document.getElementById('fzg-qr-mask');
@@ -412,39 +440,59 @@ function enhanceFzgQrModal(url: string): void {
 
 /**
  * 从弹窗 DOM 解析直链（hook 失败时的兜底）
+ * 优先级：解码 canvas/img → 按标题/type 匹配 __fzg_d（绝不回退到 [0]）
  */
 function resolveFzgQrUrlFromDom(): string | null {
 	const canvasBox = document.getElementById('fzg-qr-canvas');
 	if (!canvasBox) return null;
 
-	// 1) title 有时会被写入真实 URL
-	const titleUrl = canvasBox.getAttribute('title')?.trim();
-	if (titleUrl && /^https?:\/\//.test(titleUrl)) {
-		return titleUrl;
-	}
-
-	// 2) canvas / img 解码
+	// 1) 优先解码当前二维码（比 title 属性可靠，title 会残留上一次的 URL）
 	const canvas = canvasBox.querySelector('canvas') as HTMLCanvasElement | null;
-	if (canvas) {
-		const fromCanvas = decodeQrFromCanvas(canvas);
-		if (fromCanvas && /^https?:\/\//.test(fromCanvas)) return fromCanvas;
+	if (canvas && canvas.width > 0 && canvas.height > 0) {
+		try {
+			const fromCanvas = decodeQrFromCanvas(canvas);
+			if (fromCanvas && /^https?:\/\//.test(fromCanvas)) return fromCanvas;
+		} catch {
+			// canvas 可能尚未绘制完成
+		}
 	}
 	const img = canvasBox.querySelector('img') as HTMLImageElement | null;
 	if (img) {
 		const fromQrserver = extractUrlFromQrserverSrc(img.src);
 		if (fromQrserver) return fromQrserver;
 		if (img.complete && img.naturalWidth > 0) {
-			const fromImg = decodeQRFromImageElement(img);
-			if (fromImg && /^https?:\/\//.test(fromImg)) return fromImg;
+			try {
+				const fromImg = decodeQRFromImageElement(img);
+				if (fromImg && /^https?:\/\//.test(fromImg)) return fromImg;
+			} catch {
+				// ignore
+			}
 		}
 	}
 
-	// 3) 对照 window.__fzg_d 与标题文字匹配
+	// 2) title 仅在与当前标题网盘类型一致时采用，避免残留旧链接
+	const titleUrl = canvasBox.getAttribute('title')?.trim();
+	if (titleUrl && /^https?:\/\//.test(titleUrl) && isFzgTitleConsistentWithUrl(titleUrl)) {
+		return titleUrl;
+	}
+
+	// 3) 对照 window.__fzg_d（按 type / 中英文名匹配，失败则返回 null）
 	return resolveFzgUrlFromGlobalData();
 }
 
 /**
- * 从 window.__fzg_d 按当前弹窗标题匹配直链
+ * title 属性里的 URL 是否与当前弹窗标题的网盘类型一致
+ */
+function isFzgTitleConsistentWithUrl(url: string): boolean {
+	const titleText = document.getElementById('fzg-qr-title-text')?.textContent?.trim() || '';
+	const type = inferFzgPanTypeFromText(titleText);
+	if (!type) return false;
+	return fzgUrlMatchesType(url, type);
+}
+
+/**
+ * 从 window.__fzg_d 按当前弹窗标题 / panType 匹配直链
+ * 匹配失败返回 null，禁止回退到 list[0]
  */
 function resolveFzgUrlFromGlobalData(): string | null {
 	const win = window as Window & {
@@ -454,8 +502,62 @@ function resolveFzgUrlFromGlobalData(): string | null {
 	if (!Array.isArray(list) || !list.length) return null;
 
 	const titleText = document.getElementById('fzg-qr-title-text')?.textContent?.trim() || '';
-	const matched = list.find((item) => item.name && titleText.includes(item.name)) || list[0];
+	const inferredType = inferFzgPanTypeFromText(titleText);
+
+	const matched = list.find((item) => {
+		if (inferredType && item.type === inferredType) return true;
+		if (item.name && titleText.includes(item.name)) return true;
+		if (item.type) {
+			const aliases = FZG_PAN_TYPE_ALIASES[item.type] || [];
+			const lowerTitle = titleText.toLowerCase();
+			return aliases.some((alias) => lowerTitle.includes(alias.toLowerCase()));
+		}
+		return false;
+	});
+
 	return matched?.d ? decodeFzgBase64Url(matched.d) : null;
+}
+
+/**
+ * 从弹窗标题推断网盘 type（兼容中英文翻译）
+ */
+function inferFzgPanTypeFromText(text: string): string | null {
+	if (!text) return null;
+	const lower = text.toLowerCase();
+	for (const [type, aliases] of Object.entries(FZG_PAN_TYPE_ALIASES)) {
+		if (aliases.some((alias) => lower.includes(alias.toLowerCase()))) {
+			return type;
+		}
+	}
+	return null;
+}
+
+/**
+ * URL 是否属于指定网盘 type
+ */
+function fzgUrlMatchesType(url: string, type: string): boolean {
+	const host = (() => {
+		try {
+			return new URL(url).hostname.toLowerCase();
+		} catch {
+			return url.toLowerCase();
+		}
+	})();
+
+	switch (type) {
+		case 'baidu':
+			return host.includes('baidu.com');
+		case 'quark':
+			return host.includes('quark.cn');
+		case 'xunlei':
+			return host.includes('xunlei.com');
+		case 'alipan':
+			return host.includes('alipan.com') || host.includes('aliyundrive.com');
+		case 'buy':
+			return host.includes('steampowered.com') || host.includes('epicgames.com') || host.includes('gog.com');
+		default:
+			return true;
+	}
 }
 
 /**

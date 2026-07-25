@@ -37,7 +37,7 @@ const App = reaxper( () => {
 				onClick = { ( e ) => {
 					e.preventDefault();
 					// window.open( `https://store.steampowered.com/search/?sort_by=_ASC&term=${ selection }&supportedlang=schinese%2Cenglish` );
-					window.open( `https://store.steampowered.com/search/?l=schinese&term=${encodeURIComponent(selection.trim()).replace(/%20/g, '+')}` );
+					window.open(buildSteamSearchUrl(selection));
 				} }
 			>
 				Steam搜索：
@@ -71,4 +71,5 @@ import { reaxper } from 'reaxes-react';
 
 import { obsReaction , createReaxable } from 'reaxes';
 import { createRoot } from 'react-dom/client';
+import { buildSteamSearchUrl } from '../utils/steam-search';
 import "./style.module.less";
