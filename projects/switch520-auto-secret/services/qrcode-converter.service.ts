@@ -5,6 +5,9 @@
  * 兼容新旧两种 gamer520 下载页 DOM 结构：
  *   新版 .bdp-container 卡片式布局（百度/夸克/迅雷）
  *   旧版 wpkqcg_qrcode 格式
+ *
+ * fzgamer.com：资源下载按钮弹出 #fzg-qr-mask 扫码弹窗，
+ * 直链以 base64 存于 window.__fzg_d / fzgOpenQr 参数中
  */
 
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
@@ -13,6 +16,7 @@ import { extractUnifiedCode } from '../core/password-extractor';
 import { getProviderName } from '../utils/url-helper';
 import { insertAfter } from '../utils/dom-helper';
 
+const FZG_DIRECT_LINK_ID = 's520-fzg-direct-link';
 /**
  * 从 URL 中提取 pwd 参数值
  * 回退方案，用于 DOM 中无提取码元素（如迅雷云盘的隐藏提取码）时附加 pwd 到 URL
@@ -32,6 +36,7 @@ function extractPwdFromUrl(url: string): string | null {
 export function initQrcodeConverterService(): void {
 	initAcgQrcodeConverter();
 	initGamer520QrcodeConverter();
+	initFzgamerQrcodeConverter();
 }
 
 /**
@@ -276,6 +281,197 @@ function convertWpkqcgQrcodesToLinks(): void {
 
 		insertAfter(link, el);
 	});
+}
+
+/**
+ * fzgamer.com：资源下载区点击后弹出 #fzg-qr-mask 扫码弹窗
+ * 优先 hook window.fzgOpenQr 拿到 base64 直链；失败时再解码弹窗内 QR
+ */
+function initFzgamerQrcodeConverter(): void {
+	useMatchDomain({
+		includes: ['fzgamer.com']
+	}, () => {
+		hookFzgOpenQr();
+		observeFzgQrMask();
+	});
+}
+
+type FzgOpenQrFn = (
+	encodedUrl: string,
+	title?: string,
+	hint?: string,
+	scanTip?: string,
+	panType?: string
+) => void;
+
+/**
+ * Hook 站点的 fzgOpenQr：参数即为 base64 编码的真实下载链接
+ */
+function hookFzgOpenQr(): void {
+	const tryHook = (): boolean => {
+		const win = window as Window & {
+			fzgOpenQr?: FzgOpenQrFn & { __s520Hooked?: boolean };
+		};
+		if (typeof win.fzgOpenQr !== 'function') return false;
+		if (win.fzgOpenQr.__s520Hooked) return true;
+
+		const original = win.fzgOpenQr;
+		const hooked: FzgOpenQrFn & { __s520Hooked?: boolean } = function (
+			encodedUrl: string,
+			title?: string,
+			hint?: string,
+			scanTip?: string,
+			panType?: string
+		) {
+			original.call(this, encodedUrl, title, hint, scanTip, panType);
+			const url = decodeFzgBase64Url(encodedUrl);
+			if (url) {
+				// 站点异步生成二维码，稍后再注入，避免被 innerHTML 清空
+				setTimeout(() => enhanceFzgQrModal(url), 80);
+			}
+		};
+		hooked.__s520Hooked = true;
+		win.fzgOpenQr = hooked;
+
+		if (process.env.NODE_ENV === 'development') {
+			console.log('[qrcode-converter] 已 hook fzgOpenQr');
+		}
+		return true;
+	};
+
+	if (tryHook()) return;
+
+	const timer = window.setInterval(() => {
+		if (tryHook()) window.clearInterval(timer);
+	}, 200);
+	window.setTimeout(() => window.clearInterval(timer), 15000);
+}
+
+/**
+ * 监听 #fzg-qr-mask.show，作为 hook 未就绪或遗漏时的兜底
+ */
+function observeFzgQrMask(): void {
+	const handleMaskShown = () => {
+		const mask = document.getElementById('fzg-qr-mask');
+		if (!mask?.classList.contains('show')) return;
+		if (document.getElementById(FZG_DIRECT_LINK_ID)) return;
+
+		// 等待二维码渲染完成再解码
+		window.setTimeout(() => {
+			if (document.getElementById(FZG_DIRECT_LINK_ID)) return;
+			const url = resolveFzgQrUrlFromDom();
+			if (url) enhanceFzgQrModal(url);
+		}, 120);
+	};
+
+	const existing = document.getElementById('fzg-qr-mask');
+	if (existing) {
+		if (existing.classList.contains('show')) handleMaskShown();
+		new MutationObserver(handleMaskShown).observe(existing, {
+			attributes: true,
+			attributeFilter: ['class'],
+		});
+		return;
+	}
+
+	const bodyObserver = new MutationObserver((_mutations, obs) => {
+		const mask = document.getElementById('fzg-qr-mask');
+		if (!mask) return;
+		obs.disconnect();
+		if (mask.classList.contains('show')) handleMaskShown();
+		new MutationObserver(handleMaskShown).observe(mask, {
+			attributes: true,
+			attributeFilter: ['class'],
+		});
+	});
+	bodyObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+/**
+ * 向弹窗插入免扫码直链（二维码缩小由 style.less 负责）
+ */
+function enhanceFzgQrModal(url: string): void {
+	const body = document.querySelector('.fzg-qr-body') as HTMLElement | null;
+	const wrap = document.querySelector('.fzg-qr-wrap') as HTMLElement | null;
+	if (!body || !wrap) return;
+
+	document.getElementById(FZG_DIRECT_LINK_ID)?.remove();
+
+	const link = createDirectLink(url, {
+		// 主样式在 #s520-fzg-direct-link，这里仅兜底
+		display: 'block',
+	});
+	link.id = FZG_DIRECT_LINK_ID;
+
+	insertAfter(link, wrap);
+
+	if (process.env.NODE_ENV === 'development') {
+		console.log('[qrcode-converter] fzgamer 直链已注入:', url);
+	}
+}
+
+/**
+ * 从弹窗 DOM 解析直链（hook 失败时的兜底）
+ */
+function resolveFzgQrUrlFromDom(): string | null {
+	const canvasBox = document.getElementById('fzg-qr-canvas');
+	if (!canvasBox) return null;
+
+	// 1) title 有时会被写入真实 URL
+	const titleUrl = canvasBox.getAttribute('title')?.trim();
+	if (titleUrl && /^https?:\/\//.test(titleUrl)) {
+		return titleUrl;
+	}
+
+	// 2) canvas / img 解码
+	const canvas = canvasBox.querySelector('canvas') as HTMLCanvasElement | null;
+	if (canvas) {
+		const fromCanvas = decodeQrFromCanvas(canvas);
+		if (fromCanvas && /^https?:\/\//.test(fromCanvas)) return fromCanvas;
+	}
+	const img = canvasBox.querySelector('img') as HTMLImageElement | null;
+	if (img) {
+		const fromQrserver = extractUrlFromQrserverSrc(img.src);
+		if (fromQrserver) return fromQrserver;
+		if (img.complete && img.naturalWidth > 0) {
+			const fromImg = decodeQRFromImageElement(img);
+			if (fromImg && /^https?:\/\//.test(fromImg)) return fromImg;
+		}
+	}
+
+	// 3) 对照 window.__fzg_d 与标题文字匹配
+	return resolveFzgUrlFromGlobalData();
+}
+
+/**
+ * 从 window.__fzg_d 按当前弹窗标题匹配直链
+ */
+function resolveFzgUrlFromGlobalData(): string | null {
+	const win = window as Window & {
+		__fzg_d?: Array<{ d?: string; name?: string; type?: string }>;
+	};
+	const list = win.__fzg_d;
+	if (!Array.isArray(list) || !list.length) return null;
+
+	const titleText = document.getElementById('fzg-qr-title-text')?.textContent?.trim() || '';
+	const matched = list.find((item) => item.name && titleText.includes(item.name)) || list[0];
+	return matched?.d ? decodeFzgBase64Url(matched.d) : null;
+}
+
+/**
+ * 解码 fzgamer 的 base64 下载链接
+ */
+function decodeFzgBase64Url(encoded: string): string | null {
+	if (!encoded) return null;
+	try {
+		const decoded = atob(encoded).trim();
+		if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
+			return decoded;
+		}
+	} catch (err) {
+		console.warn('[qrcode-converter] fzgamer base64 解码失败:', err);
+	}
+	return null;
 }
 
 /**

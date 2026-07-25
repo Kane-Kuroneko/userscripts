@@ -4,3 +4,42 @@
 header.header {
 	z-index: 500!important;
 }
+
+/* fzgamer.com 扫码弹窗：缩小二维码 + 直链展示 */
+#fzg-qr-mask.show .fzg-qr-wrap {
+	padding: 8px !important;
+	margin-bottom: 8px !important;
+}
+#fzg-qr-mask.show .fzg-qr-wrap img,
+#fzg-qr-mask.show #fzg-qr-canvas img {
+	width: 120px !important;
+	height: 120px !important;
+}
+#fzg-qr-mask.show .fzg-qr-corner {
+	width: 14px !important;
+	height: 14px !important;
+}
+#fzg-qr-mask.show .fzg-qr-scanline {
+	display: none !important;
+}
+#fzg-qr-mask.show #fzg-qr-scan-tip {
+	opacity: 0.55;
+	font-size: 12px !important;
+}
+#s520-fzg-direct-link {
+	display: block;
+	margin: 8px 16px 12px;
+	padding: 10px 12px;
+	background: #f0fff0;
+	border: 1px solid #7dcea0;
+	border-radius: 8px;
+	color: #196f3d;
+	font-size: 13px;
+	line-height: 1.5;
+	word-break: break-all;
+	text-decoration: none;
+	text-align: left;
+}
+#s520-fzg-direct-link:hover {
+	background: #e8f8e8;
+}
