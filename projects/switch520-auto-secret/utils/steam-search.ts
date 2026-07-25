@@ -21,6 +21,8 @@ export const STEAM_SEARCH_SUPPORTED_LANGS = [
 	'koreana',
 ] as const;
 
+const STEAM_APP_URL_RE = /^https?:\/\/store\.steampowered\.com\/(app|bundle|sub)\b/i;
+
 /**
  * 构建 Steam 商店搜索 URL（全站点统一）
  */
@@ -45,6 +47,13 @@ export function isSteamStoreUrl(url: string): boolean {
 }
 
 /**
+ * 是否为可直达的 Steam 商品页（app / bundle / sub）
+ */
+export function isSteamAppOrBundleUrl(url: string): boolean {
+	return typeof url === 'string' && STEAM_APP_URL_RE.test(url);
+}
+
+/**
  * 规范化 Steam 商品页 URL，缺省时补上简中界面语言
  */
 export function normalizeSteamAppUrl(url: string): string {
@@ -57,4 +66,19 @@ export function normalizeSteamAppUrl(url: string): string {
 	} catch {
 		return url;
 	}
+}
+
+/**
+ * 在当前页面查找可见的 Steam 商品直链（a[href]）
+ * fzgamer 正版购买走「模拟点击按钮」，不在此解析
+ */
+export function findPageSteamStoreUrl(): string | null {
+	const anchors = document.querySelectorAll<HTMLAnchorElement>('a[href*="store.steampowered.com"]');
+	for (const a of Array.from(anchors)) {
+		const href = a.href?.trim();
+		if (href && isSteamAppOrBundleUrl(href)) {
+			return href;
+		}
+	}
+	return null;
 }

@@ -173,61 +173,38 @@ export const removeSnakeCanvas = () => {
 };
 
 /**
- * 解析「正版购买」对应的 Steam 直链
- * 站长改为扫码弹窗后，按钮 href 变为 pay-download，真实链接在 window.__fzg_d
+ * 查找资源区「正版购买」按钮（兼容中英文 UI）
  */
-export function resolveSteamBuyUrl(): string | null {
-	const list = (window as Window & {
-		__fzg_d?: Array<{ d?: string; name?: string; type?: string; is_buy?: boolean }>;
-	}).__fzg_d;
+export function findGenuinePurchaseButton(): HTMLElement | null {
+	const roots = [
+		document.querySelector('#posts-pay'),
+		document.querySelector('.but-download'),
+		document.querySelector('.pay-box'),
+		document,
+	].filter(Boolean) as Element[];
 
-	const decodeItemUrl = (item?: { d?: string }): string | null => {
-		if (!item?.d) return null;
-		try {
-			const url = atob(item.d).trim();
-			return isSteamStoreUrl(url) ? url : null;
-		} catch {
-			return null;
-		}
-	};
-
-	if (Array.isArray(list)) {
-		for (const item of list) {
-			const isBuy = item.is_buy || item.type === 'buy' || /正版/.test(item.name || '');
-			if (!isBuy) continue;
-			const url = decodeItemUrl(item);
-			if (url) return url;
-		}
-
-		// 按「正版购买」按钮 down_id 对齐 __fzg_d 下标
-		const buyBtn = findBuyButton();
-		if (buyBtn?.href) {
-			try {
-				const downId = new URL(buyBtn.href, location.origin).searchParams.get('down_id');
-				if (downId != null) {
-					const url = decodeItemUrl(list[Number(downId)]);
-					if (url) return url;
-				}
-			} catch {
-				// ignore
-			}
+	for (const root of roots) {
+		const anchors = root.querySelectorAll<HTMLElement>('a, button');
+		for (const el of Array.from(anchors)) {
+			const text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+			if (!text) continue;
+			// 正版购买 / Genuine purchase；排除普通网盘按钮
+			if (!/正版|genuine|purchase|购买/i.test(text)) continue;
+			if (/网盘|cloud\s*drive|baidu|quark|thunder|迅雷|夸克|百度/i.test(text)) continue;
+			return el;
 		}
 	}
-
-	// 下载区若仍残留直链
-	const downloadRow = document.querySelector('.but-download')?.parentElement;
-	const direct = downloadRow?.querySelector('a[href*="store.steampowered.com"]') as HTMLAnchorElement | null;
-	if (direct?.href && isSteamStoreUrl(direct.href)) {
-		return direct.href;
-	}
-
-	// 旧版：带 steam-square 图标的按钮
-	const legacy = document.querySelector('a.but.b-theme.b-black i.fa-steam-square')?.parentElement as HTMLAnchorElement | null;
-	if (legacy?.href && isSteamStoreUrl(legacy.href)) {
-		return legacy.href;
-	}
-
 	return null;
+}
+
+/**
+ * 模拟点击「正版购买」；找到并点中返回 true
+ */
+export function clickGenuinePurchaseButton(): boolean {
+	const btn = findGenuinePurchaseButton();
+	if (!btn) return false;
+	btn.click();
+	return true;
 }
 
 /**
@@ -247,19 +224,6 @@ export function getGameName(): string {
 	return fromDocTitle;
 }
 
-function findBuyButton(): HTMLAnchorElement | null {
-	const buttons = Array.from(
-		document.querySelectorAll('.but-download a, a.but.b-theme')
-	) as HTMLAnchorElement[];
-	return (
-		buttons.find(
-			(a) =>
-				/正版购买|Genuine\s*purchase/i.test(a.textContent || '') ||
-				!!a.querySelector('.fzg-buy-icon')
-		) || null
-	);
-}
-
 function pickGameNameFromTitle(raw: string): string {
 	if (!raw) return '';
 	let text = raw.replace(/\s*(最新|热门|推荐|Latest)\s*$/i, '').trim();
@@ -274,6 +238,4 @@ function pickGameNameFromTitle(raw: string): string {
 if (process.env.NODE_ENV === 'development') {
 	import(/* webpackMode: "eager" */ './tester');
 }
-
-import { isSteamStoreUrl } from '../../utils/steam-search';
 

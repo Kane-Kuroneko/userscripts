@@ -15,8 +15,27 @@ export const SearchInSteam = reaxper(() => {
 				margin: '0 0 24px 0'
 			}}
 			onClick={async () => {
+				// fzgamer：有「正版购买」按钮就直接点，由站点（+二维码转链）处理
+				let clickedBuy = false;
+				await useMatchDomain({
+					includes: ['fzgamer'],
+				}, async () => {
+					const { clickGenuinePurchaseButton } = await import(
+						/*webpackMode:'eager'*/'../../DOM-finder/fzgamer.com'
+					);
+					clickedBuy = clickGenuinePurchaseButton();
+				});
+				if (clickedBuy) return;
+
+				// 其他站：页面已有 Steam 商品直链则打开
+				const directSteamUrl = findPageSteamStoreUrl();
+				if (directSteamUrl) {
+					window.open(normalizeSteamAppUrl(directSteamUrl));
+					return;
+				}
+
+				// 否则按站点提取游戏名，走商店搜索
 				let searchResult: string | null = null;
-				let openedDirect = false;
 
 				await useMatchDomain({
 					includes: ['gamer520.com'],
@@ -34,34 +53,13 @@ export const SearchInSteam = reaxper(() => {
 				});
 
 				await useMatchDomain({
-					includes: ['steamzg'],
-				}, async () => {
-					for (const el of Array.from(document.querySelectorAll('a'))) {
-						if (el.href?.startsWith('https://store.steampowered.com/app')) {
-							window.open(normalizeSteamAppUrl(el.href));
-							openedDirect = true;
-							return;
-						}
-					}
-				});
-
-				await useMatchDomain({
 					includes: ['fzgamer'],
 				}, async () => {
-					const { resolveSteamBuyUrl, getGameName } = await import(
-						/*webpackMode:'eager'*/'../../DOM-finder/fzgamer.com'
-					);
-					const steamUrl = resolveSteamBuyUrl();
-					if (steamUrl) {
-						window.open(normalizeSteamAppUrl(steamUrl));
-						openedDirect = true;
-						return;
-					}
-					// 无 Steam 正版链接时，用游戏名走商店搜索
+					const { getGameName } = await import(/*webpackMode:'eager'*/'../../DOM-finder/fzgamer.com');
 					searchResult = getGameName() || null;
 				});
 
-				if (openedDirect || !searchResult) {
+				if (!searchResult) {
 					return;
 				}
 
@@ -74,6 +72,10 @@ export const SearchInSteam = reaxper(() => {
 });
 
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
-import { buildSteamSearchUrl, normalizeSteamAppUrl } from '../../utils/steam-search';
+import {
+	buildSteamSearchUrl,
+	findPageSteamStoreUrl,
+	normalizeSteamAppUrl,
+} from '../../utils/steam-search';
 import React from 'react';
 import { reaxper } from 'reaxes-react';
