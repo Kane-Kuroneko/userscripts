@@ -7,6 +7,7 @@ import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
 import { extractBaiduPwd } from '../core/password-extractor';
 import { recursiveFindContainer, findDirectTextNode, safeRemove } from '../utils/dom-helper';
 import { appendPwdToUrl, extractBaiduLinkFromText } from '../utils/url-helper';
+import { GAMER520_INCLUDES, isHtmlPostPage } from '../core/domain-matcher';
 
 // 正则表达式：匹配百度网盘链接和提取码文本
 const codeReg = /(提取码|如遇到有带x的提取码请手打输入)[:：]\s*(?=\S)[\w\W]+/;
@@ -25,8 +26,8 @@ export function initBaiduLinkService(): void {
  * gamer520/gamers520 站点处理
  */
 function initGamer520BaiduLink(): void {
-	useMatchDomain({ includes: ['gamer520.com', 'gamers520.com'] }, () => {
-		if (!location.href.endsWith('.html')) return;
+	useMatchDomain({ includes: [...GAMER520_INCLUDES] }, () => {
+		if (!isHtmlPostPage()) return;
 
 		// 新版 .bdp-container 卡片式布局由 qrcode-converter.service 处理，
 		// 此处仅处理旧版纯文本链接格式，避免误删提取码 DOM

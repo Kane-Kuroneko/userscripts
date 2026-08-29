@@ -10,7 +10,7 @@
  */
 export const moveElementsToVersionIntro = () => {
 	// 只在内容页执行（URL 以 .html 结尾）
-	if (!location.href.endsWith('.html')) {
+	if (!isHtmlPostPage()) {
 		return;
 	}
 
@@ -238,4 +238,6 @@ function pickGameNameFromTitle(raw: string): string {
 if (process.env.NODE_ENV === 'development') {
 	import(/* webpackMode: "eager" */ './tester');
 }
+
+import { isHtmlPostPage } from '../../core/domain-matcher';
 

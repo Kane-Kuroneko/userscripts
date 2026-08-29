@@ -15,7 +15,6 @@ export const reaxel_OpenInModal = reaxel(() => {
 				}
 				e.preventDefault();
 				e.stopPropagation();
-				// console.log('bbbbbbbbbbbbb' , e.composedPath());
 				const cardEl = e.composedPath().find(( p ) => cardElements.includes(p as HTMLElement)) as HTMLElement;
 				if( cardEl ) {
 					const { href } = cardEl.querySelector('a');
@@ -31,7 +30,7 @@ export const reaxel_OpenInModal = reaxel(() => {
 			const containerEl = document.querySelector('div.row.cat-posts-wrapper') as HTMLElement;
 			mountContainerListener(containerEl);
 		}
-		if( !location.href.endsWith('.html') ) {
+		if( !isHtmlPostPage() ) {
 			const containerEl = document.querySelector('.posts-wrapper') as HTMLElement;
 			mountContainerListener(containerEl);
 		}
@@ -39,7 +38,7 @@ export const reaxel_OpenInModal = reaxel(() => {
 	useMatchDomain({
 		includes : [ 'xxxxx520' ] ,
 	} , () => {
-		if( !location.href.endsWith('.html') ) {
+		if( !isHtmlPostPage() ) {
 			const containerEl = document.querySelector('.row.posts-wrapper.scroll');
 			
 			containerEl?.addEventListener('click' , async ( e ) => {
@@ -63,7 +62,7 @@ export const reaxel_OpenInModal = reaxel(() => {
 	useMatchDomain({
 		includes : [ 'switch618' ] ,
 	} , () => {
-		if( !location.href.endsWith('.html') ) {
+		if( !isHtmlPostPage() ) {
 			const mainEl = document.querySelector('.main');
 			
 			mainEl?.addEventListener('click' , async ( e ) => {
@@ -281,5 +280,6 @@ export const reaxel_OpenInModal = reaxel(() => {
 import { reaxel , createReaxable } from 'reaxes';
 import { message,Modal } from 'antd';
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
+import { isHtmlPostPage } from '../../core/domain-matcher';
 import {useState,useEffect} from 'react';
 import {reaxper} from 'reaxes-react';

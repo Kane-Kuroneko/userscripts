@@ -10,6 +10,20 @@ export interface DomainMatchOptions {
 }
 
 /**
+ * gamer520 / gamers520 必须同时列出：后者多一个 s，
+ * `includes('gamer520')` / `includes('gamer520.com')` 都匹配不到 `gamers520.com`
+ */
+export const GAMER520_INCLUDES = ['gamer520.com', 'gamers520.com'];
+
+/**
+ * 是否为 .html 内容页（gamer520 文章页 / gamers520 下载页均为此形态）。
+ * 必须用 pathname，否则 `?pwd=` 会让 `href.endsWith('.html')` 误判。
+ */
+export function isHtmlPostPage(): boolean {
+	return location.pathname.endsWith('.html');
+}
+
+/**
  * 检查当前页面是否匹配指定的域名规则
  * @param options 域名匹配规则
  * @returns 是否匹配

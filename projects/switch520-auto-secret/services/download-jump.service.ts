@@ -13,7 +13,7 @@
  */
 function initGamer520DownloadJump(): void {
 	// 仅在文章详情页生效
-	if (!location.href.endsWith('.html')) return;
+	if (!isHtmlPostPage()) return;
 
 	const downloadBtn = document.querySelector<HTMLAnchorElement>('a.go-down');
 	if (!downloadBtn) return;
@@ -161,13 +161,14 @@ function readPassword(url: string): Promise<string | null> {
 }
 
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
+import { GAMER520_INCLUDES, isHtmlPostPage } from '../core/domain-matcher';
 
 /**
  * 初始化下载跳转服务
  */
 export function initDownloadJumpService(): void {
 	useMatchDomain(
-		{ includes: ['gamer520.com', 'gamers520.com'] },
+		{ includes: [...GAMER520_INCLUDES] },
 		initGamer520DownloadJump
 	);
 }

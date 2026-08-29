@@ -15,6 +15,7 @@ import { decodeQrFromCanvas, decodeQRFromImageElement } from '../QrcodeToLink';
 import { extractUnifiedCode } from '../core/password-extractor';
 import { getProviderName } from '../utils/url-helper';
 import { insertAfter } from '../utils/dom-helper';
+import { GAMER520_INCLUDES } from '../core/domain-matcher';
 
 const FZG_DIRECT_LINK_ID = 's520-fzg-direct-link';
 /**
@@ -144,7 +145,7 @@ function convertSuDownloadToLinks(): void {
  */
 function initGamer520QrcodeConverter(): void {
 	useMatchDomain({
-		includes: ['gamer520.com', 'gamers520.com']
+		includes: [...GAMER520_INCLUDES]
 	}, () => {
 		// 新版 .bdp-container 卡片式布局
 		convertBdpCardsToLinks();

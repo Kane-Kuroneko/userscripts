@@ -140,8 +140,7 @@ export const initGamer520PopupBlocker = (): void => {
 	useMatchDomain({
 		includes: ['gamers520.com'],
 	}, () => {
-		// 只在内容页执行（URL 以 .html 结尾）
-		if (!location.href.endsWith('.html')) {
+		if (!isHtmlPostPage()) {
 			return;
 		}
 
@@ -159,6 +158,7 @@ export const initGamer520PopupBlocker = (): void => {
 };
 
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
+import { isHtmlPostPage } from '../core/domain-matcher';
 
 // 扩展 Window 接口以支持 Swal
 declare global {

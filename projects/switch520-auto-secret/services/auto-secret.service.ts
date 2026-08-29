@@ -12,6 +12,7 @@
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
 import { extractPasswordFromTitle, extractPasswordFromSpan } from '../core/password-extractor';
 import { querySelector } from '../utils/dom-helper';
+import { GAMER520_INCLUDES } from '../core/domain-matcher';
 
 // ============== GM Storage 键名定义 ==============
 
@@ -51,7 +52,7 @@ export function initAutoSecret(): void {
  */
 function initGamer520AutoSecret(): void {
 	useMatchDomain({
-		includes: ['gamer520.com', 'gamers520.com'],
+		includes: [...GAMER520_INCLUDES],
 	}, async () => {
 		const el_input = findPasswordInput();
 		const el_submit = findSubmitButton();
@@ -80,6 +81,10 @@ function initGamer520AutoSecret(): void {
 					secret = extractPasswordFromTitle(node.innerText);
 				}
 			});
+		}
+
+		if (!secret) {
+			secret = new URL(location.href).searchParams.get('pwd');
 		}
 
 		if (!secret) return;
