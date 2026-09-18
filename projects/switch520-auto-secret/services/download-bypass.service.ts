@@ -7,7 +7,7 @@
 
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
 import { BAD_POST_IDS_KEY, PENDING_SRC_KEY, MSG_SOURCE } from './auto-secret.service';
-import { isHtmlPostPage } from '../core/domain-matcher';
+import { GAMER520_INCLUDES, isHtmlPostPage } from '../core/domain-matcher';
 
 /**
  * 初始化下载跳过服务
@@ -23,7 +23,7 @@ export function initDownloadBypassService(): void {
  */
 function initGamer520DownloadBypass(): void {
 	useMatchDomain({
-		includes: ['gamer520.com'],
+		includes: [...GAMER520_INCLUDES],
 	}, async () => {
 		if (!isHtmlPostPage()) return;
 

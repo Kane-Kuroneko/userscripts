@@ -5,9 +5,11 @@ export const reaxel_OpenInModal = reaxel(() => {
 	});
 	
 	useMatchDomain({
-		includes : [ 'gamer520' ] ,
+		includes : [ ...GAMER520_INCLUDES ] ,
 	} , () => {
 		const mountContainerListener = async (container:HTMLElement) => {
+			/** gamers520 / gamer520 的搜索页、404 页未必存在目标容器，缺失时直接跳过，避免 Promise 内 TypeError */
+			if( !container ) return;
 			const cardElements = Array.from(container.children);
 			container?.addEventListener('click' , async ( e ) => {
 				if(!await GM.getValue('options::modal-mode' , true)){
@@ -280,6 +282,6 @@ export const reaxel_OpenInModal = reaxel(() => {
 import { reaxel , createReaxable } from 'reaxes';
 import { message,Modal } from 'antd';
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
-import { isHtmlPostPage } from '../../core/domain-matcher';
+import { GAMER520_INCLUDES, isHtmlPostPage } from '../../core/domain-matcher';
 import {useState,useEffect} from 'react';
 import {reaxper} from 'reaxes-react';

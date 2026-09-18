@@ -38,7 +38,7 @@ export const SearchInSteam = reaxper(() => {
 				let searchResult: string | null = null;
 
 				await useMatchDomain({
-					includes: ['gamer520.com'],
+					includes: [...GAMER520_INCLUDES],
 				}, async () => {
 					const { getGameName } = await import(/*webpackMode:'eager'*/'../../DOM-finder/switch520.com');
 					searchResult = getGameName();
@@ -72,6 +72,7 @@ export const SearchInSteam = reaxper(() => {
 });
 
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
+import { GAMER520_INCLUDES } from '../../core/domain-matcher';
 import {
 	buildSteamSearchUrl,
 	findPageSteamStoreUrl,

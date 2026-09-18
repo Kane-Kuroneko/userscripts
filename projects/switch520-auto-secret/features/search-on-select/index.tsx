@@ -9,6 +9,7 @@ import { reaxper } from 'reaxes-react';
 import { obsReaction, createReaxable } from 'reaxes';
 import { createRoot } from 'react-dom/client';
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
+import { GAMER520_INCLUDES } from '../../core/domain-matcher';
 import { buildSteamSearchUrl } from '../../utils/steam-search';
 import "./style.module.less";
 
@@ -69,7 +70,7 @@ const App = reaxper(() => {
  */
 export function initSearchOnSelect(): void {
 	useMatchDomain({
-		includes: ['gamer520', 'switch618', 'steamzg', 'xxxxx520']
+		includes: [...GAMER520_INCLUDES, 'switch618', 'steamzg', 'xxxxx520']
 	}, () => {
 		document.addEventListener('mouseup', (evt) => {
 			if ((evt.target as HTMLElement).className?.includes?.('ant-notification')) {
