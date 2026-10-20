@@ -27,12 +27,18 @@ function initGamer520DownloadBypass(): void {
 	}, async () => {
 		if (!isHtmlPostPage()) return;
 
-		const downloadBtn = document.querySelector('a.go-down') as HTMLElement;
+		// gamer520.com 新版文章页按钮为 a.go-downblank（无 data-id，post_id 在 href 查询参数中）
+		// 旧版为 a.go-down（post_id 在 data-id 中），两者都需拦截
+		const downloadBtn = document.querySelector<HTMLAnchorElement>('a.go-down, a.go-downblank');
 		if (!downloadBtn) return;
 
-		const srcId = downloadBtn.dataset.id;
+		const srcId = extractPostId(downloadBtn);
+		if (!srcId) {
+			console.warn('[download-bypass] 未能从下载按钮提取 post_id');
+			return;
+		}
 
-		downloadBtn?.addEventListener('click', async (e) => {
+		downloadBtn.addEventListener('click', async (e) => {
 			// useCapture=true 确保先于原页面监听器执行
 			// stopImmediatePropagation 彻底阻断同元素上其他监听器，避免原页面弹窗
 			e.preventDefault();
@@ -48,7 +54,7 @@ function initGamer520DownloadBypass(): void {
 
 			// iframe 内预检查：post_id 在精细化黑名单 → 新标签页打开，跳过 302 死循环
 			if (window.parent !== window.self) {
-				if (await isPostIdBlacklisted(srcId as string)) {
+				if (await isPostIdBlacklisted(srcId)) {
 					console.log(`[download-bypass] post_id=${srcId} 在黑名单，新标签页打开`);
 					notifyTopOpenTab(url);
 					return;
@@ -60,6 +66,22 @@ function initGamer520DownloadBypass(): void {
 			location.href = url;
 		}, true); // useCapture: true — 在捕获阶段拦截，先于原页面冒泡阶段监听器
 	});
+}
+
+/**
+ * 从下载按钮提取 post_id
+ * 兼容 data-id / data-post-id 属性与 href 中的 post_id 查询参数
+ */
+function extractPostId(downloadBtn: HTMLAnchorElement): string | null {
+	const fromDataset = downloadBtn.dataset.id || downloadBtn.dataset.postId;
+	if (fromDataset) return fromDataset;
+
+	try {
+		const href = new URL(downloadBtn.href);
+		return href.searchParams.get('post_id');
+	} catch {
+		return null;
+	}
 }
 
 /**
