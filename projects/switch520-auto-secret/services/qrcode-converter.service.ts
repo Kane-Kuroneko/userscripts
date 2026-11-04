@@ -8,14 +8,22 @@
  *
  * fzgamer.com：资源下载按钮弹出 #fzg-qr-mask 扫码弹窗，
  * 直链以 base64 存于 window.__fzg_d / fzgOpenQr 参数中
+ *
+ * acgxj/acfb/xj.steamzg：
+ *   最新 .su-qr-image[data-sq]（XOR 混淆直链，站点会删掉旧 data-qr-url）
+ *   中版 button.su-download-btn[data-qr-url]（base64 直链）
+ *   旧版 canvas.su-qr-canvas（QR 解码）
  */
 
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
 import { decodeQrFromCanvas, decodeQRFromImageElement } from '../QrcodeToLink';
-import { extractUnifiedCode } from '../core/password-extractor';
-import { getProviderName } from '../utils/url-helper';
+import { extractBaiduPwd, extractUnifiedCode } from '../core/password-extractor';
+import { appendPwdToUrl, getProviderName } from '../utils/url-helper';
 import { insertAfter } from '../utils/dom-helper';
 import { GAMER520_INCLUDES } from '../core/domain-matcher';
+
+/** 与站点 su-shortcodes 插件 encode_qr_payload() 保持一致 */
+const SU_QR_PAYLOAD_KEY = 'su-qr-2026-key';
 
 const FZG_DIRECT_LINK_ID = 's520-fzg-direct-link';
 /**
@@ -42,15 +50,18 @@ export function initQrcodeConverterService(): void {
 
 /**
  * acgxj/acfb/xj.steamzg 站点处理
- * 兼容新旧两种 DOM 结构：
- *   新版 button.su-download-btn[data-qr-url]（base64 直链）
- *   旧版 canvas.su-qr-canvas（QR 解码）
+ * 兼容三代 DOM：
+ *   最新 .su-qr-image[data-sq]
+ *   中版 button.su-download-btn[data-qr-url]
+ *   旧版 canvas.su-qr-canvas
  */
 function initAcgQrcodeConverter(): void {
 	useMatchDomain({
 		includes: ['acgxj.com', 'acfb.top', 'xj.steamzg.com']
 	}, () => {
-		// 旧版 canvas.su-qr-canvas 逻辑（向后兼容）
+		convertSuQrImagesToLinks();
+		convertSuDownloadToLinks();
+
 		const qrCodeCanvasEls = Array.from(document.querySelectorAll('canvas.su-qr-canvas')) as HTMLCanvasElement[];
 		const withdrawCode = findUnifiedWithdrawCode();
 
@@ -58,17 +69,131 @@ function initAcgQrcodeConverter(): void {
 			let url = decodeQrFromCanvas(canvas);
 			if (!url) return;
 
-			// 附加统一提取码
 			if (withdrawCode) {
-				url = url.includes('?') ? `${url}&pwd=${withdrawCode}` : `${url}?pwd=${withdrawCode}`;
+				url = appendPwdToUrl(url, withdrawCode);
 			}
 
 			const link = createDirectLink(url);
 			insertAfter(link, canvas);
 		});
+	});
+}
 
-		// 新版 su-download 结构（button[data-qr-url] + base64）
-		convertSuDownloadToLinks();
+/**
+ * 解码 .su-qr-image[data-sq]：base64url → XOR → 反转
+ * 算法与站点 su-shortcodes/assets/js/script.js 的 decodeQrPayload 一致
+ */
+function decodeSuQrPayload(payload: string): string {
+	if (!payload) return '';
+
+	try {
+		let b64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+		while (b64.length % 4) {
+			b64 += '=';
+		}
+
+		const raw = atob(b64);
+		let out = '';
+		for (let i = 0; i < raw.length; i++) {
+			out += String.fromCharCode(
+				raw.charCodeAt(i) ^ SU_QR_PAYLOAD_KEY.charCodeAt(i % SU_QR_PAYLOAD_KEY.length)
+			);
+		}
+		out = out.split('').reverse().join('');
+
+		try {
+			const bytes = Uint8Array.from({ length: out.length }, (_, i) => out.charCodeAt(i));
+			return new TextDecoder().decode(bytes);
+		} catch {
+			return out;
+		}
+	} catch {
+		return '';
+	}
+}
+
+function findSuDownloadItemCode(item: Element | null, unifiedCode?: string): string {
+	if (item) {
+		const codeEl = item.querySelector('.su-download-code');
+		if (codeEl) {
+			const strong = codeEl.querySelector('strong')?.textContent?.trim();
+			if (strong) return strong;
+
+			const fromText = extractBaiduPwd(codeEl.textContent || '');
+			if (fromText) return fromText;
+		}
+
+		const dataCode = item.querySelector('[data-code]')?.getAttribute('data-code')?.trim();
+		if (dataCode) return dataCode;
+	}
+
+	return unifiedCode || '';
+}
+
+/**
+ * 处理 acgxj 最新 DOM：.su-qr-image[data-sq]
+ * 站点在渲染二维码后会删掉旧 data-qr-url，直链只留在 XOR 混淆的 data-sq 里
+ */
+function convertSuQrImagesToLinks(): void {
+	const qrBoxes = document.querySelectorAll<HTMLElement>('.su-qr-image[data-sq], .su-qr-image[data-qr-url]');
+	if (!qrBoxes.length) return;
+
+	const unifiedCode = findUnifiedWithdrawCode();
+	if (process.env.NODE_ENV === 'development') {
+		console.log('[qrcode-converter] 检测到 su-qr-image %d 个', qrBoxes.length);
+	}
+
+	qrBoxes.forEach((box) => {
+		if (box.dataset.s520Converted === '1') return;
+
+		try {
+			let decodedUrl = decodeSuQrPayload(box.getAttribute('data-sq') || '');
+			if (!decodedUrl) {
+				const legacy = box.getAttribute('data-qr-url');
+				if (legacy) {
+					try {
+						decodedUrl = atob(legacy);
+					} catch {
+						decodedUrl = '';
+					}
+				}
+			}
+
+			decodedUrl = decodedUrl.trim();
+			if (!decodedUrl.startsWith('http://') && !decodedUrl.startsWith('https://')) {
+				if (process.env.NODE_ENV === 'development') {
+					console.warn('[qrcode-converter] su-qr-image 解码结果非有效 URL');
+				}
+				return;
+			}
+
+			const item = box.closest('.su-download-item');
+			const code = findSuDownloadItemCode(item, unifiedCode);
+			if (code) {
+				decodedUrl = appendPwdToUrl(decodedUrl, code);
+			}
+
+			if (process.env.NODE_ENV === 'development') {
+				console.log('[qrcode-converter] 处理 su-qr-image: %s, code=%s', getProviderName(decodedUrl) || '网盘', code || '(无)');
+			}
+
+			const link = createDirectLink(decodedUrl, {
+				display: 'block',
+				marginTop: '8px',
+				wordBreak: 'break-all',
+			});
+
+			// 挂到卡片本身，避开 .su-download-inner 的 named grid（info/qr/code/tip）
+			if (item) {
+				item.appendChild(link);
+			} else {
+				insertAfter(link, box);
+			}
+
+			box.dataset.s520Converted = '1';
+		} catch (err) {
+			console.warn('[qrcode-converter] su-qr-image 处理失败:', err);
+		}
 	});
 }
 
