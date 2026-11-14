@@ -12,7 +12,7 @@ description: 在 projects/switch520-auto-secret 子工程上添加新功能、�
 > - [`code-standard`](../../rules/code-standard.md)
 > - [`git-commit-policy`](../../rules/git-commit-policy.md)（任何 git 写操作前必读）
 >
-> 发版相关请用：[`switch520-auto-secret-release`](../switch520-auto-secret-release/SKILL.md)
+> 发版：先读唯一事实源 [`.qoder/rules/switch520-auto-secret-release-rules.md`](../../rules/switch520-auto-secret-release-rules.md)，再按 [`switch520-auto-secret-release`](../switch520-auto-secret-release/SKILL.md) 执行。不要用 `docs/release-checklist.md`。
 
 ## 项目速览
 
@@ -229,5 +229,5 @@ if (process.env.NODE_ENV === 'development') {
 ## 与发版流程的边界
 
 - 本技能**不**触发 `npm run release`
-- 本技能**不**修改 CHANGELOG.md / Readme.md（那是发版的工作）
+- 本技能**不**修改 CHANGELOG.md / Readme.md（那是发版的工作，规则只认 `.qoder/rules/switch520-auto-secret-release-rules.md`）
 - 修复 bug 完成 ≠ 发版，必须由用户明确说"发版"才进入 release 流程

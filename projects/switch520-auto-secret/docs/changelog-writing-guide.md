@@ -1,5 +1,11 @@
 # 更新日志与 Readme 编写规范
 
+本文件**只约束条目怎么写句子**（用户视角、禁止技术细节）。
+
+条目去留、条数、CHANGELOG vs Readme 分工，以发版**唯一事实源**为准，不要在这里另写：
+
+[`.qoder/rules/switch520-auto-secret-release-rules.md`](../../../.qoder/rules/switch520-auto-secret-release-rules.md)
+
 ## 核心原则
 
 CHANGELOG.md 和 Readme.md 是面向**脚本使用者**的文档，不是给开发者看的技术笔记。

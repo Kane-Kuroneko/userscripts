@@ -1,5 +1,7 @@
 # CHANGELOG 格式规范化更新总结
 
+> **存档。** 发版约束以 [`.qoder/rules/switch520-auto-secret-release-rules.md`](../.qoder/rules/switch520-auto-secret-release-rules.md) 为唯一事实源。本文若与其冲突（例如把 README 写成「同步整份 CHANGELOG」），忽略本文。
+
 ## 🎯 更新目标
 
 将 switch520-auto-secret 子工程的 CHANGELOG.md 统一为 HTML 格式，并在 SKILL.md 中明确发版工作流。
