@@ -6,9 +6,10 @@
 import { SearchInSteam } from '../../Components/SearchInSteamButton';
 import { createRoot } from 'react-dom/client';
 import { useMatchDomain } from '#generic-svc/utils/useMatchDomain';
-import { GAMER520_INCLUDES } from '../../core/domain-matcher';
+import { GAMER520_INCLUDES, isHtmlPostPage } from '../../core/domain-matcher';
 // 静态导入 DOM 查找器（避免代码分割）
 import { articleContainer as getGamer520ArticleContainer } from '../../DOM-finder/switch520.com';
+import { getSteamButtonAnchor } from '../../DOM-finder/switch618.com';
 
 /**
  * 初始化 Steam 搜索按钮
@@ -47,12 +48,14 @@ export function initSearchInSteam(): void {
 	 */
 	function initSwitch618SearchButton(): void {
 		useMatchDomain({
-			regExp: /switch618\.com\/[\d+]+.html/g,
+			includes: ['switch618'],
 		}, () => {
-			const container = document.querySelector(`.erphpdown-box`)!;
-			if (!container) return;
-			
-			container.insertAdjacentElement('afterend', div);
+			if (!isHtmlPostPage()) return;
+
+			const anchor = getSteamButtonAnchor();
+			if (!anchor) return;
+
+			anchor.insertAdjacentElement('afterend', div);
 			reactRoot.render(<SearchInSteam />);
 		});
 	}
